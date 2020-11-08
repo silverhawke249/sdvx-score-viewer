@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="stylesheet.css">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <script src="main.js" type="text/javascript"></script>
+    <title>SDVX Local Score Viewer</title>
+</head>
+<body onload="initialize()" class="no-select">
+    <div class="top-header">
+        <div class="title">SDVX Local Score Viewer</div>
+    </div>
+    <div class="container">
+        <div class="section">
+            <div class="section-header">
+                Data select
+            </div>
+            <div class="subsection">
+                <div class="subsection-header"><label for="sdvx_id">SDVX ID</label></div>
+                <div class="subsection-content">
+                    <select id="sdvx_id" onchange="load_card_data(this.value)">
+                        <option value="" selected disabled hidden></option>
+                    </select>
+                </div>
+            </div>
+            <div class="subsection">
+                <div class="subsection-header-small">Player name</div>
+                <div class="subsection-content-small" id="player_name">---</div>
+                <div class="subsection-header-small">Skill level</div>
+                <div class="subsection-content-small" id="skill_lv">---</div>
+                <div class="subsection-header-small">Playcount</div>
+                <div class="subsection-content-small" id="playcount">---</div>
+                <div class="subsection-header-small">Last update</div>
+                <div class="subsection-content-small" id="timestamp">---</div>
+            </div>
+        </div>
+        <div class="section hidden" id="section_stats">
+            <div class="section-header hide-content">
+                Statistics
+            </div>
+        </div>
+        <div class="section" id="section_filters">
+            <div class="section-header">
+                Filters
+            </div>
+            <div class="subsection">
+                <div class="subsection-header">Difficulty</div>
+                <div class="subsection-content">
+                    <div><input type="checkbox" id="diff0"><label for="diff0">NOV</label></div>
+                    <div><input type="checkbox" id="diff1"><label for="diff1">ADV</label></div>
+                    <div><input type="checkbox" id="diff2" checked><label for="diff2">EXH</label></div>
+                    <div><input type="checkbox" id="diff3" checked><label for="diff3">MXM</label></div>
+                    <div><input type="checkbox" id="diff4" checked><label for="diff4">INF/GRV/HVN/VVD</label></div>
+                </div>
+                <div class="subsection-footer">
+                    <input type="button" value="Clear all" data-filter="diff" data-apply="">
+                </div>
+            </div>
+            <div class="subsection">
+                <div class="subsection-header">Level</div>
+                <div class="subsection-content">
+                    <div class="hidden"><input type="checkbox" id="level0"><label for="level0">Lv00</label></div>
+                    <div><input type="checkbox" id="level1"><label for="level1">Lv01</label></div>
+                    <div><input type="checkbox" id="level2"><label for="level2">Lv02</label></div>
+                    <div><input type="checkbox" id="level3"><label for="level3">Lv03</label></div>
+                    <div><input type="checkbox" id="level4"><label for="level4">Lv04</label></div>
+                    <div><input type="checkbox" id="level5"><label for="level5">Lv05</label></div>
+                    <div><input type="checkbox" id="level6"><label for="level6">Lv06</label></div>
+                    <div><input type="checkbox" id="level7"><label for="level7">Lv07</label></div>
+                    <div><input type="checkbox" id="level8"><label for="level8">Lv08</label></div>
+                    <div><input type="checkbox" id="level9"><label for="level9">Lv09</label></div>
+                    <div><input type="checkbox" id="level10"><label for="level10">Lv10</label></div>
+                    <div><input type="checkbox" id="level11"><label for="level11">Lv11</label></div>
+                    <div><input type="checkbox" id="level12"><label for="level12">Lv12</label></div>
+                    <div><input type="checkbox" id="level13"><label for="level13">Lv13</label></div>
+                    <div><input type="checkbox" id="level14"><label for="level14">Lv14</label></div>
+                    <div><input type="checkbox" id="level15"><label for="level15">Lv15</label></div>
+                    <div><input type="checkbox" id="level16"><label for="level16">Lv16</label></div>
+                    <div><input type="checkbox" id="level17" checked><label for="level17">Lv17</label></div>
+                    <div><input type="checkbox" id="level18" checked><label for="level18">Lv18</label></div>
+                    <div><input type="checkbox" id="level19" checked><label for="level19">Lv19</label></div>
+                    <div><input type="checkbox" id="level20" checked><label for="level20">Lv20</label></div>
+                </div>
+                <div class="subsection-footer">
+                    <input type="button" value="Clear all" data-filter="level" data-apply="">
+                </div>
+            </div>
+            <div class="subsection">
+                <div class="subsection-header">Status</div>
+                <div class="subsection-content">
+                    <div><input type="checkbox" id="status0" checked><label for="status0">PLAYED</label></div>
+                    <div><input type="checkbox" id="status1" checked><label for="status1">COMP</label></div>
+                    <div><input type="checkbox" id="status2" checked><label for="status2">EX COMP</label></div>
+                    <div><input type="checkbox" id="status3" checked><label for="status3">UC</label></div>
+                    <div><input type="checkbox" id="status4" checked><label for="status4">PERFECT</label></div>
+                </div>
+                <div class="subsection-footer">
+                    <input type="button" value="Clear all" data-filter="status" data-apply="">
+                </div>
+            </div>
+            <div class="subsection">
+                <div class="subsection-header">Grade</div>
+                <div class="subsection-content">
+                    <div><input type="checkbox" id="grade0" checked><label for="grade0">D</label></div>
+                    <div><input type="checkbox" id="grade1" checked><label for="grade1">C</label></div>
+                    <div><input type="checkbox" id="grade2" checked><label for="grade2">B</label></div>
+                    <div><input type="checkbox" id="grade3" checked><label for="grade3">A</label></div>
+                    <div><input type="checkbox" id="grade4" checked><label for="grade4">A+</label></div>
+                    <div><input type="checkbox" id="grade5" checked><label for="grade5">AA</label></div>
+                    <div><input type="checkbox" id="grade6" checked><label for="grade6">AA+</label></div>
+                    <div><input type="checkbox" id="grade7" checked><label for="grade7">AAA</label></div>
+                    <div><input type="checkbox" id="grade8" checked><label for="grade8">AAA+</label></div>
+                    <div><input type="checkbox" id="grade9" checked><label for="grade9">S</label></div>
+                </div>
+                <div class="subsection-footer">
+                    <input type="button" value="Clear all" data-filter="grade" data-apply="">
+                </div>
+            </div>
+            <div class="subsection">
+                <div class="subsection-header">
+                    <input type="button" value="Apply" onclick="update_score_table()">
+                </div>
+            </div>
+        </div>
+        <div class="section hidden" id="section_table">
+            <table id="score_table" data-sort="!_id">
+                <tbody>
+                    <tr>
+                        <th data-sortname="song_name">Song Name</th>
+                        <th data-sortname="diff">Diff</th>
+                        <th data-sortname="level">Level</th>
+                        <th data-sortname="status">Status</th>
+                        <th data-sortname="grade">Grade</th>
+                        <th data-sortname="score">Score</th>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="table-footer"><div id="entry_num">--</div> entries in the table.</div>
+        </div>
+    </div>
+</body>
+</html>
