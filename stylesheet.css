@@ -16,7 +16,7 @@ body {
     align-items: center;
     font-family: 'Roboto', sans-serif;
     color: #EAE5FF;
-    background: #101014;
+    background: #16171D;
 }
 
 /* DOCUMENT BODY */
@@ -47,12 +47,12 @@ body {
     width: 778px;
     margin-bottom: 15px;
     padding: 10px;
-    background: #16171D;
+    background: #101014;
     box-shadow: 0 0 10px rgba(0, 0, 0, .6);
 }
 .section-header {
     margin-bottom: 15px;
-    font-size: 20 0%;
+    font-size: 100%;
     font-weight: 500;
 }
 
@@ -79,9 +79,11 @@ body {
 .subsection-header-small {
     width: 125px;
     font-size: 120%;
+    font-weight: 400;
 }
 .subsection-content-small {
     width: 264px;
+    text-align: center
 }
 .subsection-footer {
     width: 90px;
@@ -93,15 +95,16 @@ body {
     background-color: #4d2c91;
     color: whitesmoke;
     font-weight:200;
+    align-content: center;
 }
 
 .subsection-container {
     display: flex;
     align-items: center;
-    background: #222;
+    background: #16171D;
 }
 .subsection-container:nth-child(2n) {
-    background: #1E1E1E;
+    background: #101014;;
 }
 .subcontent-container {
     display: flex;
@@ -114,15 +117,15 @@ body {
     display: flex;
 }
 .tab-head {
-    background: #161616;
-    color: #888;
+    background: #101014;
+    color: #918E9E;
     padding: 10px;
     border-radius: 5px 5px 0 0;
     margin-right: 3px;
 }
 .active-tab {
-    background: #222;
-    color: #FFF;
+    background: #434354;
+    color:#EAE5FF;
 }
 .single-subheader {
     display: flex;
@@ -176,8 +179,8 @@ tr:hover {
     background: #434354;
 }
 td {
-    height: 30px;
-    padding: 0 3px;
+    height: 40px;
+    padding: 0 6px;
     text-align: center;
 }
 td.column-song_name {
@@ -217,6 +220,10 @@ input[type="checkbox"] {
     display:none;
 }
 
+.icon img{
+    vertical-align: middle;
+}
+
 .icon input:checked + label{
     opacity:1;
     transition: 0.3s opacity;
@@ -228,11 +235,16 @@ input[type="checkbox"] {
 }
 
 input[type="button"] {
+    border-width: 0;
     width: 90px;
     padding: 5px;
     font-family: var(--font);
     font-size: initial;
     text-align: center;
+    background-color: #4d2c91;
+    color: whitesmoke;
+    font-weight:200;
+    outline: none;
 }
 label {
     margin-right: 20px;
