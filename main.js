@@ -118,6 +118,14 @@ function initialize() {
 
     load_filter();
     load_card_info();
+
+    banners(); // random backgrounds
+}
+
+function banners(){
+    path = `url("images/banners/` + Math.floor(Math.random() * 10) + `.png")`;
+    let bg = document.getElementById("topheader").style;
+    bg.backgroundImage = path;
 }
 
 function load_filter() {

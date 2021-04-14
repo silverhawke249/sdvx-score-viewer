@@ -20,19 +20,24 @@ body {
 }
 
 /* DOCUMENT BODY */
-.top-header {
+.topheader {
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+    background-position: center;
     width: 100%;
+    height: 175px;
     padding: 7px 0;
     margin-bottom: 15px;
-    border-bottom: 7px solid #4d2c91 ;
-    color: whitesmoke;
-    background-color: #7e57c2;
-    font-size: 250%;
+    border-bottom: 3px solid #4d2c91;
+    color: #EAE5FF;
+    font-size: 280%;
     font-family: 'Roboto', sans-serif;
     font-weight: 100;
 }
 .title {
     margin-left: 30px;
+    margin-top: 125px;
+    text-shadow: 1px 1px 2px black;
 }
 
 .container {
@@ -88,14 +93,34 @@ body {
 .subsection-footer {
     width: 90px;
 }
+.subsection select{
+    appearance: none;
+    border: 0;
+    background: #2E313D;
+    color: #EAE5FF;
+    height: 25px;
+    padding-left: 10px;;
+    border-radius: 3px;;
+}
+
+.subsection select:selection{
+    background: #434354;
+}
 
 .subsection-footer input[type=button]{
     border-width: 0;
     outline: none;
     background-color: #4d2c91;
-    color: whitesmoke;
+    color: #EAE5FF;
     font-weight:200;
     align-content: center;
+    border-radius: 2px;
+    transition: 0.3s opacity;
+}
+
+.subsection-footer input[type=button]:hover {
+    opacity: 0.8;
+    transition: 0.3s;
 }
 
 .subsection-container {
@@ -191,9 +216,12 @@ td.column-song_name {
     -ms-user-select: text;
     user-select: text;
 }
+td.column-diff img{
+    height:20px;
+}
 td .cell-sub {
     font-size: 70%;
-    color: rgb(164, 255, 164);
+    color: #ABF0D1;
 }
 td.column-score {
     text-align: right;
@@ -242,10 +270,17 @@ input[type="button"] {
     font-size: initial;
     text-align: center;
     background-color: #4d2c91;
-    color: whitesmoke;
+    color: #EAE5FF;
     font-weight:200;
     outline: none;
+    border-radius: 2px;
+    transition: 0.3s opacity;
 }
+input[type="button"]:hover {
+    opacity: 0.8;
+    transition: 0.3s;
+}
+
 label {
     margin-right: 20px;
     
@@ -260,6 +295,7 @@ select {
 img {
     height: 30px;
 }
+
 #section_stats {
     overflow: hidden;
     -webkit-transition: all 0.3s ease-out;
