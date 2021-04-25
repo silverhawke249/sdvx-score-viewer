@@ -431,16 +431,19 @@ function compute_volforce() {
         let score_grade = get_grade(score);
 
         let volforce = song_level * 2 * score / 1e7 * vf_multiplier.status[status] * vf_multiplier.grade[score_grade];
-        temp_vf_table.push([song_id, song_diff, Math.trunc(volforce)]);
+        temp_vf_table.push([song_id, song_diff, volforce * 10]);
     }
 
     temp_vf_table.sort(function(a, b) {
-        return a[0] === b[0] ? b[1] - a[1] : b[2] - a[2];
+        return b[2] - a[2];
     });
 
     // Capped at 50 charts
     least_eligible_vf = temp_vf_table[49][2];
+	// Round down to 1 decimal point
+	least_eligible_vf = Math.trunc(least_eligible_vf);
     let vf_table = temp_vf_table.filter(e => e[2] >= least_eligible_vf);
+	console.log(vf_table);
 
     let nodes = [];
     for (let i=0; i < vf_table.length / 2; i++) {
@@ -450,7 +453,8 @@ function compute_volforce() {
             let header = new_element('div', ['subcontent-container', 'volforce', 'w-300px']);
             let container = new_element('div', ['flex-cell']);
             let text_wrapper = new_element('div', ['center-text']);
-            let content = new_element('div', ['subcontent-container']);
+            let content = new_element('div', ['subcontent-container', 'vf-text']);
+			let tooltip = new_element('span', ['tooltip-text']);
 
             let index = i * 2 + j;
             let entry = vf_table[index];
@@ -471,8 +475,10 @@ function compute_volforce() {
             let text_container = new_element('span');
             text_container.innerText = song_name;
             text_wrapper.appendChild(text_container);
-            content.innerText = `${entry[2]} VF`;
+            content.innerText = `${Math.trunc(entry[2]) / 10} VF`;
+			tooltip.innerText = `${(Math.trunc(entry[2] * 100) / 1000).toFixed(3)} VF`;
 
+			content.appendChild(tooltip);
             container.appendChild(text_wrapper);
             container.appendChild(dif_img);
             header.appendChild(container);
@@ -484,7 +490,7 @@ function compute_volforce() {
     }
 
     let footer = new_element('div', ['volforce', 'table-footer']);
-    footer.innerText = `${vf_table.length} charts in Volforce folder | Total Volforce is ${vf_table.slice(0, 50).map(e => e[2]).reduce((a, b) => a + b, 0) / 100}`;
+    footer.innerText = `${vf_table.length} charts in Volforce folder | Total Volforce is ${(vf_table.slice(0, 50).map(e => Math.trunc(e[2])).reduce((a, b) => a + b, 0) / 1000).toFixed(3)}`;
     nodes.push(footer);
 
     // Resize divs to fit the spans

@@ -138,6 +138,20 @@ body {
     flex-grow: 1;
     min-height: 35px;
 }
+.vf-text {
+    min-width: 85px;
+}
+.vf-text:hover {
+    color: transparent;
+}
+.tooltip-text {
+    visibility: hidden;
+    position: absolute;
+    color: #EAE5FF;
+}
+.vf-text:hover .tooltip-text {
+    visibility: visible;
+}
 .tab-container {
     display: flex;
 }
