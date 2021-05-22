@@ -349,7 +349,7 @@ function compute_statistics() {
         counter_diff.grade[score_grade][5]++;
     }
 
-    let level_labels = Array.from(Array(20).keys(), x => `Lv${pad_num(x, 2)}`);
+    let level_labels = Array.from(Array(20).keys(), x => `Lv${pad_num(x + 1, 2)}`);
     level_labels.push('Total');
     let diff_labels = [...const_names.diff.map(x => `images/diff${x}.png`), const_names.diff4.map(x => `images/diff${x}.png`)];
     diff_labels.push('Total');
