@@ -443,7 +443,6 @@ function compute_volforce() {
 	// Round down to 1 decimal point
 	least_eligible_vf = Math.trunc(least_eligible_vf);
     let vf_table = temp_vf_table.filter(e => e[2] >= least_eligible_vf);
-	console.log(vf_table);
 
     let nodes = [];
     for (let i=0; i < vf_table.length / 2; i++) {
@@ -451,8 +450,8 @@ function compute_volforce() {
 
         for (let j=0; j < 2; j++) {
             let header = new_element('div', ['subcontent-container', 'volforce', 'w-300px']);
-            let container = new_element('div', ['flex-cell']);
             let text_wrapper = new_element('div', ['center-text']);
+            let img_wrap = new_element('div', ['subcontent-container', 'volforce']);
             let content = new_element('div', ['subcontent-container', 'vf-text']);
 			let tooltip = new_element('span', ['tooltip-text']);
 
@@ -460,8 +459,9 @@ function compute_volforce() {
             let entry = vf_table[index];
             if (entry === undefined) {
                 entry = vf_table[index - 1];
-                content.classList.add('invisible');
                 header.classList.add('invisible');
+                content.classList.add('invisible');
+                img_wrap.classList.add('invisible');
             }
 
             let dif_img = document.createElement('img');
@@ -479,11 +479,11 @@ function compute_volforce() {
 			tooltip.innerText = `${(Math.trunc(entry[2] * 100) / 1000).toFixed(3)} VF`;
 
 			content.appendChild(tooltip);
-            container.appendChild(text_wrapper);
-            container.appendChild(dif_img);
-            header.appendChild(container);
+            header.appendChild(text_wrapper);
+			img_wrap.appendChild(dif_img);
 
             entry_container.appendChild(header);
+            entry_container.appendChild(img_wrap);
             entry_container.appendChild(content);
         }
         nodes.push(entry_container);
