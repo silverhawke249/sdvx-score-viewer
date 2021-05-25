@@ -162,12 +162,18 @@ function load_card_info() {
 }
 
 function populate_card_list(idlist) {
+    idlist.sort();
+
     let form_select = document.getElementById('sdvx_id');
     for (let sdvx_id of idlist) {
-        let option = document.createElement('option');
-        option.value = sdvx_id;
-        option.innerText = sdvx_id;
-        form_select.appendChild(option);
+        fetch(`scores/${sdvx_id}.json`)
+            .then(response => response.json())
+            .then(function(json) {
+                let option = document.createElement('option');
+                option.value = sdvx_id;
+                option.innerText = `${sdvx_id} (${json['card_name']})`;
+                form_select.appendChild(option);
+            });
     }
 }
 
@@ -440,8 +446,8 @@ function compute_volforce() {
 
     // Capped at 50 charts
     least_eligible_vf = temp_vf_table[49][2];
-	// Round down to 1 decimal point
-	least_eligible_vf = Math.trunc(least_eligible_vf);
+    // Round down to 1 decimal point
+    least_eligible_vf = Math.trunc(least_eligible_vf);
     let vf_table = temp_vf_table.filter(e => e[2] >= least_eligible_vf);
 
     let nodes = [];
@@ -453,7 +459,7 @@ function compute_volforce() {
             let text_wrapper = new_element('div', ['center-text']);
             let img_wrap = new_element('div', ['subcontent-container', 'volforce']);
             let content = new_element('div', ['subcontent-container', 'vf-text']);
-			let tooltip = new_element('span', ['tooltip-text']);
+            let tooltip = new_element('span', ['tooltip-text']);
 
             let index = i * 2 + j;
             let entry = vf_table[index];
@@ -476,11 +482,11 @@ function compute_volforce() {
             text_container.innerText = song_name;
             text_wrapper.appendChild(text_container);
             content.innerText = `${Math.trunc(entry[2]) / 10} VF`;
-			tooltip.innerText = `${(Math.trunc(entry[2] * 100) / 1000).toFixed(3)} VF`;
+            tooltip.innerText = `${(Math.trunc(entry[2] * 100) / 1000).toFixed(3)} VF`;
 
-			content.appendChild(tooltip);
+            content.appendChild(tooltip);
             header.appendChild(text_wrapper);
-			img_wrap.appendChild(dif_img);
+            img_wrap.appendChild(dif_img);
 
             entry_container.appendChild(header);
             entry_container.appendChild(img_wrap);
