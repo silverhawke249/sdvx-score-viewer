@@ -162,9 +162,8 @@ function load_card_info() {
 }
 
 function populate_card_list(idlist) {
-    idlist.sort();
-
     let form_select = document.getElementById('sdvx_id');
+    let options = [];
     for (let sdvx_id of idlist) {
         fetch(`scores/${sdvx_id}.json`)
             .then(response => response.json())
@@ -172,7 +171,14 @@ function populate_card_list(idlist) {
                 let option = document.createElement('option');
                 option.value = sdvx_id;
                 option.innerText = `${sdvx_id} (${json['card_name']})`;
-                form_select.appendChild(option);
+                options.push(option);
+            })
+            .then(function() {
+                if (options.length < idlist.length) return;
+                options.sort((s1, s2) => s1.value.localeCompare(s2.value));
+                for (let option of options) {
+                    form_select.appendChild(option);
+                }
             });
     }
 }
