@@ -622,6 +622,14 @@ function apply_sort() {
         table.setAttribute('data-sort', `!${cur_sort_method}`);
     } else if (table.getAttribute('data-sort') === `!${cur_sort_method}`) {
         this.classList.remove('reverse-sort');
+        if (cur_sort_method == 'score') {
+            this.classList.add('special-sort');
+            table.setAttribute('data-sort', `~${cur_sort_method}`);
+        } else {
+            table.setAttribute('data-sort', '!_id');
+        }
+    } else if (table.getAttribute('data-sort') === `~${cur_sort_method}`) {
+        this.classList.remove('special-sort');
         table.setAttribute('data-sort', '!_id');
     } else {
         let headers = Array.from(document.getElementsByTagName('th'));
@@ -710,8 +718,12 @@ function clear_table() {
 
 function sort_func(key) {
     let invert = false;
+    let special_sort = false;
     if (key.startsWith('!')) {
         invert = true;
+        key = key.substr(1);
+    } else if (key.startsWith('~')) {
+        special_sort = true;
         key = key.substr(1);
     }
 
@@ -720,8 +732,28 @@ function sort_func(key) {
             return (a.song_name < b.song_name ? -1 : a.song_name === b.song_name ? 0 : 1) * (1 - 2 * invert);
         }
     } else {
-        return function(a, b) {
-            return a[key] === b[key] ? b._id - a._id : ((a[key] - b[key]) * (1 - 2 * invert));
+        if (!special_sort) {
+            return function(a, b) {
+                return a[key] === b[key] ? b._id - a._id : ((a[key] - b[key]) * (1 - 2 * invert));
+            }
+        } else {
+            return function(a, b) {
+                if (a.prev_data === undefined && b.prev_data === undefined) {
+                    return b._id - a._id;
+                } else if (a.prev_data === undefined && b.prev_data !== undefined) {
+                    return 1;
+                } else if (a.prev_data !== undefined && b.prev_data === undefined) {
+                    return -1;
+                } else {
+                    let a_diff = a.score - a.prev_data.score;
+                    let b_diff = b.score - b.prev_data.score;
+                    if (a_diff === b_diff) {
+                        return a.score === b.score ? b._id - a._id : b.score - a.score;
+                    } else {
+                        return b_diff - a_diff;
+                    }
+                }
+            }
         }
     }
 }

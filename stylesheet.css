@@ -208,6 +208,9 @@ th.normal-sort::after {
 th.reverse-sort::after {
     content: ' ▼';
 }
+th.special-sort::after {
+    content: ' ▽';
+}
 tr:nth-child(2n) {
     background: #16171D;
 }
