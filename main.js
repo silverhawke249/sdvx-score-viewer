@@ -191,7 +191,7 @@ function populate_card_list(idlist) {
     let form_select_rival = document.getElementById('sdvx_id_rival');
 
     let options = [];
-    let options_rival = [];
+    let options_rival = [document.createElement('option')];
     for (let sdvx_id of idlist) {
         fetch(`scores/${sdvx_id}.json`)
             .then(response => response.json())
@@ -348,6 +348,8 @@ function update_score_table() {
         table_section.classList.remove('hidden');
         if (rival_entries) {
             document.getElementById('rival_col').classList.remove('hidden');
+        } else {
+            document.getElementById('rival_col').classList.add('hidden');
         }
     } else {
         table_section.classList.add('hidden');
@@ -355,12 +357,17 @@ function update_score_table() {
 }
 
 function set_rival(sdvx_id) {
-    fetch(`scores/${sdvx_id}.json`)
-      .then(response => response.json())
-      .then(json => {
-          document.LocalScoreViewer_rival = json['scores'];
-          update_score_table();
-      })
+    if (sdvx_id) {
+        fetch(`scores/${sdvx_id}.json`)
+            .then(response => response.json())
+            .then(json => {
+                document.LocalScoreViewer_rival = json['scores'];
+                update_score_table();
+          });
+    } else {
+        document.LocalScoreViewer_rival = null;
+        update_score_table();
+    }
 }
 
 function compute_statistics() {
