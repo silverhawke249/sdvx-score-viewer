@@ -243,6 +243,22 @@ td .cell-sub {
 td.column-score {
     text-align: right;
 }
+td.column-rival_score {
+    text-align: right;
+}
+td .cell-pos {
+    font-size: 70%;
+    color: #ABF0D1;
+}
+td .cell-neg {
+    font-size: 70%;
+    color: #FA8C80;
+}
+td .cell-zer {
+    font-size: 70%;
+    color: #CDCDCD;
+}
+
 .table-footer {
     margin-top: 5px;
     float: right;
@@ -300,7 +316,7 @@ input[type="button"]:hover {
 
 label {
     margin-right: 20px;
-    
+
     line-height: 2;
 }
 select {
@@ -309,6 +325,11 @@ select {
 }
 
 /* MISC STUFF */
+.separator-s {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
 img {
     height: 30px;
 }
