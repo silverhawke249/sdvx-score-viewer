@@ -833,7 +833,7 @@ function sort_func(key) {
     } else {
         if (!special_sort) {
             return function(a, b) {
-                return a[key] === b[key] ? b._id - a._id : ((a[key] - b[key]) * (1 - 2 * invert));
+                return a[key] === b[key] ? b._id - a._id : a[key] === undefined ? 1 : b[key] === undefined ? - 1 : (a[key] - b[key]) * (1 - 2 * invert);
             }
         } else {
             if (key === 'score') {
