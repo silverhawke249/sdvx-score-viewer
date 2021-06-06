@@ -24,7 +24,7 @@ const vf_multiplier = {
 };
 
 // Table of functions that convert a table entry into a HTML node
-const table_columns = ['song_name', 'diff', 'level', 'status', 'grade', 'score'];
+const table_columns = ['song_name', 'diff', 'level', 'status', 'grade', 'score', 'rival_score'];
 const values_to_node = {
     song_name: function(e) {
         let container = document.createElement('div');
@@ -74,6 +74,31 @@ const values_to_node = {
             inc.innerText = '+' + (e.score - e.prev_data.score).toLocaleString();
             inc.classList.add('cell-sub');
             container.appendChild(inc);
+        }
+        return container;
+    },
+
+    rival_score: function(e) {
+        let container = document.createElement('div');
+        let rs = document.createElement('div');
+        let del = document.createElement('div');
+        rs.innerText = e.rival_score?.toLocaleString() ?? '';
+        rs.classList.add('cell-main');
+        container.appendChild(rs);
+        if (e.rival_delta !== undefined) {
+            let sign = Math.sign(e.rival_delta);
+
+            if (sign === 1) {
+                del.innerText = "+" + e.rival_delta.toLocaleString();
+                del.classList.add('cell-pos');
+            } else if (sign === -1) {
+                del.innerText = e.rival_delta.toLocaleString();
+                del.classList.add('cell-neg');
+            } else {
+                del.innerText = e.rival_delta.toLocaleString();
+                del.classList.add('cell-zer');
+            }
+            container.appendChild(del);
         }
         return container;
     },
@@ -163,7 +188,10 @@ function load_card_info() {
 
 function populate_card_list(idlist) {
     let form_select = document.getElementById('sdvx_id');
+    let form_select_rival = document.getElementById('sdvx_id_rival');
+
     let options = [];
+    let options_rival = [document.createElement('option')];
     for (let sdvx_id of idlist) {
         fetch(`scores/${sdvx_id}.json`)
             .then(response => response.json())
@@ -172,12 +200,20 @@ function populate_card_list(idlist) {
                 option.value = sdvx_id;
                 option.innerText = `${sdvx_id} (${json['card_name']})`;
                 options.push(option);
+
+                let option_rival = option.cloneNode(true);
+                options_rival.push(option_rival);
             })
             .then(function() {
                 if (options.length < idlist.length) return;
                 options.sort((s1, s2) => s1.value.localeCompare(s2.value));
+                options_rival.sort((s1, s2) => s1.value.localeCompare(s2.value));
+
                 for (let option of options) {
                     form_select.appendChild(option);
+                }
+                for (let option of options_rival) {
+                    form_select_rival.appendChild(option);
                 }
             });
     }
@@ -187,6 +223,9 @@ function load_card_data(sdvx_id) {
     fetch(`scores/${sdvx_id}.json`)
         .then(response => response.json())
         .then(json => populate_card_data(json));
+
+    document.getElementById('vs').classList.remove('hidden');
+    document.getElementById('sdvx_id_rival').classList.remove('hidden');
 }
 
 function populate_card_data(data) {
@@ -250,62 +289,50 @@ function update_score_table() {
     // Empty out the table first
     clear_table();
 
-    // Get filter
-    let is_in_table = get_filter();
+    // Get and filter the user's scores in a table
+    let user_scores_table = get_filtered_table(scores, true);
 
-    // Create table with raw data that's easier to handle
-    let table_entries = [];
-    for (let key in scores) {
-        // If I don't do this IntelliJ will complain
-        if (!scores.hasOwnProperty(key)) continue;
+    // Add rival scores if rival is set
+    let rival_entries = document.LocalScoreViewer_rival;
+    if (rival_entries) {
+        // Rival scores shouldn't be filtered
+        let rival_scores_table = get_filtered_table(rival_entries, false);
 
-        let [song_id, song_diff] = key.split('|');
-        let status = scores[key]['clear_mark'];
-        let score = scores[key]['score'];
-
-        song_id = parseInt(song_id);
-        song_diff = parseInt(song_diff);
-
-        let song_data = document.LocalScoreViewer_songData[song_id];
-        let song_level = song_data['difficulties'][song_diff];
-        let score_grade = get_grade(score);
-
-        let table_entry = {
-            'song_name': song_data['song_name'].replace('(EXIT TUNES)', ''),
-            'song_artist': song_data['song_artist'],
-            'diff': song_diff,
-            'level': song_level,
-            'status': status,
-            'grade': score_grade,
-            'score': score,
-            'prev_data': document.LocalScoreViewer_cardData.updated_scores[key],
-            '_id': song_id,
-            '_diff4': song_data['diff4_name']
-        };
-
-        if (!is_in_table(table_entry)) continue;
-
-        table_entries.push(table_entry);
+        // Could probably be optimized further using maps
+        for (let rival_score of rival_scores_table) {
+            for (let user_score of user_scores_table) {
+                if (rival_score._id === user_score._id && rival_score.diff === user_score.diff) {
+                    user_score['rival_score'] = rival_score['score'];
+                    user_score['rival_grade'] = rival_score['grade'];
+                    user_score['rival_status'] = rival_score['status'];
+                    user_score['rival_delta'] = user_score['score'] - rival_score['score'];
+                }
+            }
+        }
     }
 
     // Sort table
     let table = document.getElementById('score_table');
     let sort_method = table.getAttribute('data-sort');
     if (sort_method) {
-        table_entries.sort(sort_func(sort_method));
+        user_scores_table.sort(sort_func(sort_method));
     }
 
     // Insert entries to table
-    for (let entry of table_entries) {
+    for (let entry of user_scores_table) {
         let table_row = document.createElement('tr');
         for (let col of table_columns) {
+            if (!rival_entries && col === "rival_score") {
+                continue;
+            }
+
             let table_cell = document.createElement('td');
             let content = null;
             table_cell.classList.add(`column-${col}`);
             if (values_to_node.hasOwnProperty(col)) {
                 content = values_to_node[col](entry);
             } else {
-                content = document.createTextNode(entry[col])
+                content = document.createTextNode(entry[col]);
             }
             table_cell.appendChild(content);
             table_row.appendChild(table_cell);
@@ -316,11 +343,30 @@ function update_score_table() {
 
     // Show table only if it's not empty
     let table_section = document.getElementById('section_table');
-    if (table_entries.length) {
-        document.getElementById('entry_num').innerText = table_entries.length;
+    if (user_scores_table.length) {
+        document.getElementById('entry_num').innerText = user_scores_table.length;
         table_section.classList.remove('hidden');
+        if (rival_entries) {
+            document.getElementById('rival_col').classList.remove('hidden');
+        } else {
+            document.getElementById('rival_col').classList.add('hidden');
+        }
     } else {
         table_section.classList.add('hidden');
+    }
+}
+
+function set_rival(sdvx_id) {
+    if (sdvx_id) {
+        fetch(`scores/${sdvx_id}.json`)
+            .then(response => response.json())
+            .then(json => {
+                document.LocalScoreViewer_rival = json['scores'];
+                update_score_table();
+          });
+    } else {
+        document.LocalScoreViewer_rival = null;
+        update_score_table();
     }
 }
 
@@ -690,6 +736,46 @@ function checkbox_listener() {
 }
 
 // HELPER FUNCTIONS //
+
+function get_filtered_table(scores, shouldFilter) {
+    // Get filter
+    let is_in_table = get_filter();
+
+    // Create table with raw data that's easier to handle
+    let table_entries = [];
+    for (let key in scores) {
+        // If I don't do this IntelliJ will complain
+        if (!scores.hasOwnProperty(key)) continue;
+
+        let [song_id, song_diff] = key.split('|');
+        let status = scores[key]['clear_mark'];
+        let score = scores[key]['score'];
+
+        song_id = parseInt(song_id);
+        song_diff = parseInt(song_diff);
+
+        let song_data = document.LocalScoreViewer_songData[song_id];
+        let song_level = song_data['difficulties'][song_diff];
+        let score_grade = get_grade(score);
+
+        let table_entry = {
+            'song_name': song_data['song_name'].replace('(EXIT TUNES)', ''),
+            'song_artist': song_data['song_artist'],
+            'diff': song_diff,
+            'level': song_level,
+            'status': status,
+            'grade': score_grade,
+            'score': score,
+            'prev_data': document.LocalScoreViewer_cardData.updated_scores[key],
+            '_id': song_id,
+            '_diff4': song_data['diff4_name']
+        };
+
+        if (shouldFilter && !is_in_table(table_entry)) continue;
+        table_entries.push(table_entry);
+    }
+    return table_entries;
+}
 
 function get_filter() {
     // All in one function for filtering
