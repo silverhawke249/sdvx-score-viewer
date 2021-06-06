@@ -209,6 +209,9 @@ th.reverse-sort::after {
     content: ' ▼';
 }
 th.special-sort::after {
+    content: ' △';
+}
+th.special-reverse-sort::after {
     content: ' ▽';
 }
 tr:nth-child(2n) {

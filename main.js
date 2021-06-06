@@ -66,12 +66,12 @@ const values_to_node = {
     score: function(e) {
         let container = document.createElement('div');
         let cs = document.createElement('div');
-        let inc = document.createElement('div');
         cs.innerText = e.score.toLocaleString();
         cs.classList.add('cell-main');
         container.appendChild(cs);
-        if (e.prev_data !== undefined) {
-            inc.innerText = '+' + (e.score - e.prev_data.score).toLocaleString();
+        if (e.score_delta !== undefined) {
+            let inc = document.createElement('div');
+            inc.innerText = '+' + e.score_delta.toLocaleString();
             inc.classList.add('cell-sub');
             container.appendChild(inc);
         }
@@ -668,7 +668,7 @@ function apply_sort() {
         table.setAttribute('data-sort', `!${cur_sort_method}`);
     } else if (table.getAttribute('data-sort') === `!${cur_sort_method}`) {
         this.classList.remove('reverse-sort');
-        if (cur_sort_method == 'score') {
+        if (cur_sort_method == 'score' || cur_sort_method == 'rival_score') {
             this.classList.add('special-sort');
             table.setAttribute('data-sort', `~${cur_sort_method}`);
         } else {
@@ -676,6 +676,14 @@ function apply_sort() {
         }
     } else if (table.getAttribute('data-sort') === `~${cur_sort_method}`) {
         this.classList.remove('special-sort');
+        if (cur_sort_method == 'rival_score') {
+            this.classList.add('special-reverse-sort');
+            table.setAttribute('data-sort', `~!${cur_sort_method}`);
+        } else {
+            table.setAttribute('data-sort', '!_id');
+        }
+    } else if (table.getAttribute('data-sort') === `~!${cur_sort_method}`) {
+        this.classList.remove('special-reverse-sort');
         table.setAttribute('data-sort', '!_id');
     } else {
         let headers = Array.from(document.getElementsByTagName('th'));
@@ -771,6 +779,10 @@ function get_filtered_table(scores, shouldFilter) {
             '_diff4': song_data['diff4_name']
         };
 
+        if (table_entry.prev_data !== undefined) {
+            table_entry.score_delta = table_entry.score - table_entry.prev_data.score;
+        }
+
         if (shouldFilter && !is_in_table(table_entry)) continue;
         table_entries.push(table_entry);
     }
@@ -805,13 +817,14 @@ function clear_table() {
 function sort_func(key) {
     let invert = false;
     let special_sort = false;
-    if (key.startsWith('!')) {
-        invert = true;
-        key = key.substr(1);
-    } else if (key.startsWith('~')) {
+    if (key.startsWith('~')) {
         special_sort = true;
         key = key.substr(1);
     }
+    if (key.startsWith('!')) {
+        invert = true;
+        key = key.substr(1);
+    } 
 
     if (key === 'song_name') {
         return function(a, b) {
@@ -823,20 +836,36 @@ function sort_func(key) {
                 return a[key] === b[key] ? b._id - a._id : ((a[key] - b[key]) * (1 - 2 * invert));
             }
         } else {
-            return function(a, b) {
-                if (a.prev_data === undefined && b.prev_data === undefined) {
-                    return b._id - a._id;
-                } else if (a.prev_data === undefined && b.prev_data !== undefined) {
-                    return 1;
-                } else if (a.prev_data !== undefined && b.prev_data === undefined) {
-                    return -1;
-                } else {
-                    let a_diff = a.score - a.prev_data.score;
-                    let b_diff = b.score - b.prev_data.score;
-                    if (a_diff === b_diff) {
-                        return a.score === b.score ? b._id - a._id : b.score - a.score;
+            if (key === 'score') {
+                return function(a, b) {
+                    if (a.score_delta === undefined && b.score_delta === undefined) {
+                        return b._id - a._id;
+                    } else if (a.score_delta === undefined && b.score_delta !== undefined) {
+                        return 1;
+                    } else if (a.score_delta !== undefined && b.score_delta === undefined) {
+                        return -1;
                     } else {
-                        return b_diff - a_diff;
+                        if (a.score_delta === b.score_delta) {
+                            return a.score === b.score ? b._id - a._id : (b.score - a.score);
+                        } else {
+                            return b.score_delta - a.score_delta;
+                        }
+                    }
+                }
+            } else if (key === 'rival_score') {
+                return function(a, b) {
+                    if (a.rival_delta === undefined && b.rival_delta === undefined) {
+                        return b._id - a._id;
+                    } else if (a.rival_delta === undefined && b.rival_delta !== undefined) {
+                        return 1;
+                    } else if (a.rival_delta !== undefined && b.rival_delta === undefined) {
+                        return -1;
+                    } else {
+                        if (a.rival_delta === b.rival_delta) {
+                            return a.score === b.score ? b._id - a._id : ((b.score - a.score) * (1 - 2 * invert));
+                        } else {
+                            return (a.rival_delta - b.rival_delta) * (1 - 2 * invert);
+                        }
                     }
                 }
             }
