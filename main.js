@@ -193,29 +193,33 @@ function populate_card_list(idlist) {
     let options = [];
     let options_rival = [document.createElement('option')];
     for (let sdvx_id of idlist) {
-        fetch(`scores/${sdvx_id}.json`)
-            .then(response => response.json())
-            .then(function(json) {
-                let option = document.createElement('option');
-                option.value = sdvx_id;
-                option.innerText = `${sdvx_id} (${json['card_name']})`;
-                options.push(option);
+		try {
+			fetch(`scores/${sdvx_id}.json`)
+				.then(response => response.json())
+				.then(function(json) {
+					let option = document.createElement('option');
+					option.value = sdvx_id;
+					option.innerText = `${sdvx_id} (${json['card_name']})`;
+					options.push(option);
 
-                let option_rival = option.cloneNode(true);
-                options_rival.push(option_rival);
-            })
-            .then(function() {
-                if (options.length < idlist.length) return;
-                options.sort((s1, s2) => s1.value.localeCompare(s2.value));
-                options_rival.sort((s1, s2) => s1.value.localeCompare(s2.value));
+					let option_rival = option.cloneNode(true);
+					options_rival.push(option_rival);
+				})
+				.then(function() {
+					if (options.length < idlist.length) return;
+					options.sort((s1, s2) => s1.value.localeCompare(s2.value));
+					options_rival.sort((s1, s2) => s1.value.localeCompare(s2.value));
 
-                for (let option of options) {
-                    form_select.appendChild(option);
-                }
-                for (let option of options_rival) {
-                    form_select_rival.appendChild(option);
-                }
-            });
+					for (let option of options) {
+						form_select.appendChild(option);
+					}
+					for (let option of options_rival) {
+						form_select_rival.appendChild(option);
+					}
+				});
+		} catch(err) {
+			console.log(`loading ${sdvx_id}.json failed: {err}`)
+		}
     }
 }
 
