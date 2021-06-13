@@ -189,12 +189,13 @@ function load_card_info() {
 function populate_card_list(idlist) {
     let form_select = document.getElementById('sdvx_id');
     let form_select_rival = document.getElementById('sdvx_id_rival');
+    let invalid_entries = 0;
 
     let options = [];
     let options_rival = [document.createElement('option')];
     for (let sdvx_id of idlist) {
         fetch(`scores/${sdvx_id}.json`)
-            .then(response => response.json(), err => console.log(`loading ${sdvx_id}.json failed: {err}`))
+            .then(response => response.json())
             .then(function(json) {
                 let option = document.createElement('option');
                 option.value = sdvx_id;
@@ -204,8 +205,12 @@ function populate_card_list(idlist) {
                 let option_rival = option.cloneNode(true);
                 options_rival.push(option_rival);
             })
+            .catch(function(err) {
+                console.log(`loading ${sdvx_id}.json failed: ${err}`);
+                invalid_entries += 1;
+            })
             .then(function() {
-                if (options.length < idlist.length) return;
+                if (options.length < (idlist.length - invalid_entries)) return;
                 options.sort((s1, s2) => s1.value.localeCompare(s2.value));
                 options_rival.sort((s1, s2) => s1.value.localeCompare(s2.value));
 
