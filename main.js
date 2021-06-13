@@ -194,7 +194,7 @@ function populate_card_list(idlist) {
     let options_rival = [document.createElement('option')];
     for (let sdvx_id of idlist) {
         fetch(`scores/${sdvx_id}.json`)
-            .then(response => response.json(), err => console.log(`loading ${sdvx_id}.json failed: {err}`)
+            .then(response => response.json(), err => console.log(`loading ${sdvx_id}.json failed: {err}`))
             .then(function(json) {
                 let option = document.createElement('option');
                 option.value = sdvx_id;
