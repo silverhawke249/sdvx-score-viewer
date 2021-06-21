@@ -148,7 +148,7 @@ function initialize() {
 }
 
 function banners(){
-    path = `url("images/banners/` + Math.floor(Math.random() * 10) + `.png")`;
+    let path = `url("images/banners/` + Math.floor(Math.random() * 10) + `.png")`;
     let bg = document.getElementById("topheader").style;
     bg.backgroundImage = path;
 }
@@ -419,7 +419,6 @@ function compute_statistics() {
     let grade_labels = Array.from(Array(5).keys(), x => `images/grade${x + 5}.png`);
     let status_labels = Array.from(Array(5).keys(), x => `images/status${x}.png`);
 
-    // ['Volforce', 'Volforce']
     add_stats_page('LvStatus', 'Level/Status', create_stats_section(level_labels, status_labels, counter_level.status));
     add_stats_page('LvGrade', 'Level/Grade', create_stats_section(level_labels, grade_labels, counter_level.grade.slice(5)));
     add_stats_page('DifStatus', 'Diff/Status', create_stats_section(diff_labels, status_labels, counter_diff.status, true));
@@ -673,7 +672,7 @@ function apply_sort() {
         table.setAttribute('data-sort', `!${cur_sort_method}`);
     } else if (table.getAttribute('data-sort') === `!${cur_sort_method}`) {
         this.classList.remove('reverse-sort');
-        if (cur_sort_method == 'score' || cur_sort_method == 'rival_score') {
+        if (cur_sort_method === 'score' || cur_sort_method === 'rival_score') {
             this.classList.add('special-sort');
             table.setAttribute('data-sort', `~${cur_sort_method}`);
         } else {
@@ -681,7 +680,7 @@ function apply_sort() {
         }
     } else if (table.getAttribute('data-sort') === `~${cur_sort_method}`) {
         this.classList.remove('special-sort');
-        if (cur_sort_method == 'rival_score') {
+        if (cur_sort_method === 'rival_score') {
             this.classList.add('special-reverse-sort');
             table.setAttribute('data-sort', `~!${cur_sort_method}`);
         } else {
@@ -706,7 +705,7 @@ function apply_sort() {
 function change_filter() {
     let key = this.getAttribute('data-filter');
     let apply_status = this.getAttribute('data-apply');
-    for (e of filter_fields[key]) {
+    for (let e of filter_fields[key]) {
         let x = document.getElementById(key + e);
         if (x) x.checked = apply_status;
     }
