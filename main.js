@@ -147,12 +147,6 @@ function initialize() {
     banners(); // random backgrounds
 }
 
-function banners(){
-    let path = `url("images/banners/` + Math.floor(Math.random() * 10) + `.png")`;
-    let bg = document.getElementById("topheader").style;
-    bg.backgroundImage = path;
-}
-
 function load_filter() {
     // Get cookie
     let cookie_array = document.cookie.split(';');
@@ -225,12 +219,16 @@ function populate_card_list(idlist) {
 }
 
 function load_card_data(sdvx_id) {
+    lock_inputs();
+
     fetch(`scores/${sdvx_id}.json`)
         .then(response => response.json())
         .then(json => populate_card_data(json));
 
     document.getElementById('vs').classList.remove('hidden');
     document.getElementById('sdvx_id_rival').classList.remove('hidden');
+
+    unlock_inputs();
 }
 
 function populate_card_data(data) {
@@ -362,6 +360,8 @@ function update_score_table() {
 }
 
 function set_rival(sdvx_id) {
+    lock_inputs();
+
     if (sdvx_id) {
         fetch(`scores/${sdvx_id}.json`)
             .then(response => response.json())
@@ -373,6 +373,8 @@ function set_rival(sdvx_id) {
         document.LocalScoreViewer_rival = null;
         update_score_table();
     }
+
+    unlock_inputs();
 }
 
 function compute_statistics() {
@@ -661,6 +663,12 @@ function add_stats_page(tab_id, tab_text, node_list) {
     tab_container.firstChild.click();
 }
 
+function banners(){
+    let path = `url("images/banners/` + Math.floor(Math.random() * 10) + `.png")`;
+    let bg = document.getElementById("topheader").style;
+    bg.backgroundImage = path;
+}
+
 // EVENT LISTENERS //
 
 function apply_sort() {
@@ -748,6 +756,22 @@ function checkbox_listener() {
 }
 
 // HELPER FUNCTIONS //
+
+function lock_inputs() {
+    let e = document.getElementById('sdvx_id');
+    e.disabled = true;
+
+    e = document.getElementById('sdvx_id_rival');
+    e.disabled = true;
+}
+
+function unlock_inputs() {
+    let e = document.getElementById('sdvx_id');
+    e.disabled = false;
+
+    e = document.getElementById('sdvx_id_rival');
+    e.disabled = false;
+}
 
 function get_filtered_table(scores, shouldFilter) {
     // Get filter
