@@ -103,7 +103,7 @@ body {
     border-radius: 3px;;
 }
 
-.subsection select:selection{
+.subsection select::selection{
     background: #434354;
 }
 
@@ -214,10 +214,10 @@ th.special-sort::after {
 th.special-reverse-sort::after {
     content: ' ▽';
 }
-tr:nth-child(2n) {
+tr.even {
     background: #16171D;
 }
-tr:nth-child(2n+1) {
+tr.odd {
     background: #101014;
 }
 tr:hover {
@@ -289,13 +289,14 @@ input[type="checkbox"] {
 }
 
 .icon input:checked + label{
-    opacity:1;
-    transition: 0.3s opacity;
+    opacity: 1;
+    transition: 0.3s opacity,filter;
 }
 
 .icon input:not(:checked) + label{
-    opacity:0.5;
-    transition: 0.3s opacity;
+    opacity: 0.5;
+    filter: grayscale(1);
+    transition: 0.3s opacity,filter;
 }
 
 input[type="button"] {
