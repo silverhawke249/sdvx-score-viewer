@@ -793,6 +793,8 @@ function change_filter() {
         this.setAttribute('data-apply', '1');
         this.value = 'Apply all';
     }
+
+    refresh_table();
 }
 
 function checkbox_listener() {
