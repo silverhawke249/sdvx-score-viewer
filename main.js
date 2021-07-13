@@ -7,970 +7,999 @@
 //   - [DONE] implement manual wrapping via JS
 
 const filter_fields = {
-    diff: [...Array(5).keys()],
-    level: [...Array(21).keys()],
-    status: [...Array(5).keys()],
-    grade: [...Array(10).keys()]
+	diff: [...Array(5).keys()],
+	level: [...Array(21).keys()],
+	status: [...Array(6).keys()],
+	grade: [...Array(10).keys()]
 };
 const const_names = {
-    diff: ['NOV', 'ADV', 'EXH', 'MXM'],
-    diff4: ['INF', 'GRV', 'HVN', 'VVD'],
-    status: ['PLAYED', 'COMP', 'EX COMP', 'UC', 'PERFECT'],
-    grade: ['D', 'C', 'B', 'A', 'A+', 'AA', 'AA+', 'AAA', 'AAA+', 'S']
+	diff: ['NOV', 'ADV', 'EXH', 'MXM'],
+	diff4: ['INF', 'GRV', 'HVN', 'VVD'],
+	status: ['NO MEDAL', 'PLAYED', 'COMP', 'EX COMP', 'UC', 'PERFECT'],
+	grade: ['D', 'C', 'B', 'A', 'A+', 'AA', 'AA+', 'AAA', 'AAA+', 'S']
 };
 const vf_multiplier = {
-    status: [0.5, 1.0, 1.02, 1.05, 1.1],
-    grade: [0.79, 0.82, 0.85, 0.88, 0.91, 0.94, 0.97, 1.0, 1.02, 1.05]
+	status: [0.5, 1.0, 1.02, 1.05, 1.1],
+	grade: [0.79, 0.82, 0.85, 0.88, 0.91, 0.94, 0.97, 1.0, 1.02, 1.05]
 };
 const diff4_sort_modifier = {
-    null: 0,
-    INF: .1,
-    GRV: .2,
-    HVN: .3,
-    VVD: .4
+	null: 0,
+	INF: .1,
+	GRV: .2,
+	HVN: .3,
+	VVD: .4
 };
 
 // Table of functions that convert a table entry into a HTML node
 const table_columns = ['song_name', 'diff', 'level', 'status', 'grade', 'score', 'rival_score'];
 const values_to_node = {
-    song_name: function(e) {
-        let container = document.createElement('div');
-        let sn = document.createElement('div');
-        sn.innerText = e.song_name;
-        container.appendChild(sn);
-        /* Not putting this in until I figure out what to do when the artist field is too long
-        sn.classList.add('cell-main');
-        let sa = document.createElement('div');
-        sa.innerText = e.song_artist;
-        sa.classList.add('cell-sub');
-        container.appendChild(sa);
-        */
-        return container;
-    },
-    diff: function(e) {
-        let el = document.createElement('img');
-        el.setAttribute('draggable', 'false');
-        el.classList.add('diff');
-        let diff = e.diff === 4 ? e._diff4 : const_names.diff[e.diff];
-        el.src = `images/diff${diff}.png`;
-        el.alt = diff;
-        return el;
-    },
-    status: function(e) {
-        let el = document.createElement('img');
-        el.setAttribute('draggable', 'false');
-        el.src = `images/status${e.status}.png`;
-        el.alt = const_names.status[e.status];
-        return el;
-    },
-    grade: function(e) {
-        let el = document.createElement('img');
-        el.setAttribute('draggable', 'false');
-        el.src = `images/grade${e.grade}.png`;
-        el.alt = const_names.grade[e.grade];
-        return el;
-    },
-    score: function(e) {
-        let container = document.createElement('div');
-        let cs = document.createElement('div');
-        cs.innerText = e.score.toLocaleString();
-        cs.classList.add('cell-main');
-        container.appendChild(cs);
-        if (e.score_delta !== undefined) {
-            let inc = document.createElement('div');
-            inc.innerText = '+' + e.score_delta.toLocaleString();
-            inc.classList.add('cell-sub');
-            container.appendChild(inc);
-        }
-        return container;
-    },
+	song_name: function(e) {
+		let container = document.createElement('div');
+		let sn = document.createElement('div');
+		sn.innerText = e.song_name;
+		container.appendChild(sn);
+		/* Not putting this in until I figure out what to do when the artist field is too long
+		sn.classList.add('cell-main');
+		let sa = document.createElement('div');
+		sa.innerText = e.song_artist;
+		sa.classList.add('cell-sub');
+		container.appendChild(sa);
+		*/
+		return container;
+	},
+	diff: function(e) {
+		let el = document.createElement('img');
+		el.setAttribute('draggable', 'false');
+		el.classList.add('diff');
+		let diff = e.diff === 4 ? e._diff4 : const_names.diff[e.diff];
+		el.src = `images/diff${diff}.png`;
+		el.alt = diff;
+		return el;
+	},
+	status: function(e) {
+		let el = document.createElement('img');
+		el.setAttribute('draggable', 'false');
+		el.src = `images/status${e.status}.png`;
+		el.alt = const_names.status[e.status];
+		return el;
+	},
+	grade: function(e) {
+		let el = document.createElement('img');
+		el.setAttribute('draggable', 'false');
+		el.src = `images/grade${e.grade}.png`;
+		el.alt = const_names.grade[e.grade];
+		return el;
+	},
+	score: function(e) {
+		let container = document.createElement('div');
+		let cs = document.createElement('div');
+		cs.innerText = e.score.toLocaleString();
+		cs.classList.add('cell-main');
+		container.appendChild(cs);
+		if (e.score_delta !== undefined) {
+			let inc = document.createElement('div');
+			inc.innerText = '+' + e.score_delta.toLocaleString();
+			inc.classList.add('cell-sub');
+			container.appendChild(inc);
+		}
+		return container;
+	},
 
-    rival_score: function(e) {
-        let container = document.createElement('div');
-        let rs = document.createElement('div');
-        let del = document.createElement('div');
-        rs.innerText = e.rival_score?.toLocaleString() ?? '';
-        rs.classList.add('cell-main');
-        container.appendChild(rs);
-        if (e.rival_delta !== undefined) {
-            let sign = Math.sign(e.rival_delta);
+	rival_score: function(e) {
+		let container = document.createElement('div');
+		let rs = document.createElement('div');
+		let del = document.createElement('div');
+		rs.innerText = e.rival_score?.toLocaleString() ?? '';
+		rs.classList.add('cell-main');
+		container.appendChild(rs);
+		if (e.rival_delta !== undefined) {
+			let sign = Math.sign(e.rival_delta);
 
-            if (sign === 1) {
-                del.innerText = "+" + e.rival_delta.toLocaleString();
-                del.classList.add('cell-pos');
-            } else if (sign === -1) {
-                del.innerText = e.rival_delta.toLocaleString();
-                del.classList.add('cell-neg');
-            } else {
-                del.innerText = e.rival_delta.toLocaleString();
-                del.classList.add('cell-zer');
-            }
-            container.appendChild(del);
-        }
-        return container;
-    },
+			if (sign === 1) {
+				del.innerText = "+" + e.rival_delta.toLocaleString();
+				del.classList.add('cell-pos');
+			} else if (sign === -1) {
+				del.innerText = e.rival_delta.toLocaleString();
+				del.classList.add('cell-neg');
+			} else {
+				del.innerText = e.rival_delta.toLocaleString();
+				del.classList.add('cell-zer');
+			}
+			container.appendChild(del);
+		}
+		return container;
+	},
 };
 
 function initialize() {
-    // Add event listeners
-    // Event listener for hiding the Statistics section
-    let e = document.querySelector('.section-header');
-    document.getElementById('section_stats').style.height = `${e.clientHeight}px`;
-    e = document.querySelector('#section_stats>.section-header');
-    e.addEventListener('click', function() {
-        let parent = this.parentNode;
-        if (this.classList.contains('hide-content')) {
-            this.classList.remove('hide-content');
-            this.classList.add('show-content');
-            let cur_height = parent.clientHeight - 20;
-            parent.style.height = 'auto';
-            let target_height = parent.clientHeight - 20;
-            parent.style.height = `${cur_height}px`;
-            setTimeout(() => parent.style.height = `${target_height}px`, 10);
-        } else {
-            this.classList.remove('show-content');
-            this.classList.add('hide-content');
-            parent.style.height = `${this.clientHeight}px`;
-        }
-    });
-    // Event listener for sorting the main table
-    for (let e of document.getElementsByTagName('th')) {
-        e.addEventListener('click', apply_sort);
-    }
-    // Event listener for the filter checkboxes
-    for (let e of document.querySelectorAll('input[type="checkbox"]')) {
-        e.addEventListener('change', checkbox_listener);
-    }
-    // Event listener for the apply filter button
-    for (let e of document.querySelectorAll('input[type="button"]')) {
-        if (e.hasAttribute('data-filter')) {
-            e.addEventListener('click', change_filter);
-        }
-    }
+	// Add event listeners
+	// Event listener for hiding the Statistics section
+	let e = document.querySelector('.section-header');
+	document.getElementById('section_stats').style.height = `${e.clientHeight}px`;
+	e = document.querySelector('#section_stats>.section-header');
+	e.addEventListener('click', function() {
+		let parent = this.parentNode;
+		if (this.classList.contains('hide-content')) {
+			this.classList.remove('hide-content');
+			this.classList.add('show-content');
+			let cur_height = parent.clientHeight - 20;
+			parent.style.height = 'auto';
+			let target_height = parent.clientHeight - 20;
+			parent.style.height = `${cur_height}px`;
+			setTimeout(() => parent.style.height = `${target_height}px`, 10);
+		} else {
+			this.classList.remove('show-content');
+			this.classList.add('hide-content');
+			parent.style.height = `${this.clientHeight}px`;
+		}
+	});
+	// Event listener for sorting the main table
+	for (let e of document.getElementsByTagName('th')) {
+		e.addEventListener('click', apply_sort);
+	}
+	// Event listener for the filter checkboxes
+	for (let e of document.querySelectorAll('input[type="checkbox"]')) {
+		e.addEventListener('change', checkbox_listener);
+	}
+	// Event listener for the apply filter button
+	for (let e of document.querySelectorAll('input[type="button"]')) {
+		if (e.hasAttribute('data-filter')) {
+			e.addEventListener('click', change_filter);
+		}
+	}
 
-    load_filter();
-    load_card_info();
+	load_filter();
+	load_card_info();
 
-    banners(); // random backgrounds
+	banners(); // random backgrounds
 }
 
 function load_filter() {
-    // Get cookie
-    let cookie_array = document.cookie.split(';');
-    cookie_array = cookie_array.map(s => s.trim());
-    let key_name = 'enabledFilters';
-    let enabled_filter = null;
-    for (let i=0; i<cookie_array.length; i++) {
-        if (cookie_array[i].startsWith(`${key_name}=`)) {
-            enabled_filter = parseInt(cookie_array[i].substring(key_name.length + 1));
-            break;
-        }
-    }
+	// Get cookie
+	let cookie_array = document.cookie.split(';');
+	cookie_array = cookie_array.map(s => s.trim());
+	let key_name = 'enabledFilters';
+	let enabled_filter = null;
+	for (let i=0; i<cookie_array.length; i++) {
+		if (cookie_array[i].startsWith(`${key_name}=`)) {
+			enabled_filter = parseInt(cookie_array[i].substring(key_name.length + 1));
+			break;
+		}
+	}
 
-    // Load filter value to cookie
-    let filter_checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
-    if (enabled_filter !== null) {
-        for (let checkbox of filter_checkboxes) {
-            checkbox.checked = enabled_filter & 1;
-            enabled_filter = Math.floor(enabled_filter / 2);
-            if (enabled_filter === 0) break;
-        }
-    }
+	// Load filter value to cookie
+	let filter_checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+	if (enabled_filter !== null) {
+		for (let checkbox of filter_checkboxes) {
+			checkbox.checked = enabled_filter & 1;
+			enabled_filter = Math.floor(enabled_filter / 2);
+			if (enabled_filter === 0) break;
+		}
+	}
 }
 
 function load_card_info() {
-    fetch('song_db.json')
-        .then(response => response.json())
-        .then(json => document.LocalScoreViewer_songData = json);
-    fetch('scores/profile_list.json')
-        .then(response => response.json())
-        .then(json => populate_card_list(json));
+	fetch('song_db.json')
+		.then(response => response.json())
+		.then(json => document.LocalScoreViewer_songData = json)
+		.then(compute_db_totals);
+	fetch('scores/profile_list.json')
+		.then(response => response.json())
+		.then(json => populate_card_list(json));
 }
 
 function populate_card_list(idlist) {
-    let form_select = document.getElementById('sdvx_id');
-    let form_select_rival = document.getElementById('sdvx_id_rival');
-    let invalid_entries = 0;
+	let form_select = document.getElementById('sdvx_id');
+	let form_select_rival = document.getElementById('sdvx_id_rival');
+	let invalid_entries = 0;
 
-    let options = [];
-    let options_rival = [document.createElement('option')];
-    for (let sdvx_id of idlist) {
-        fetch(`scores/${sdvx_id}.json`)
-            .then(response => response.json())
-            .then(function(json) {
-                let option = document.createElement('option');
-                option.value = sdvx_id;
-                option.innerText = `${sdvx_id} (${json['card_name']})`;
-                options.push(option);
+	let options = [];
+	let options_rival = [document.createElement('option')];
+	for (let sdvx_id of idlist) {
+		fetch(`scores/${sdvx_id}.json`)
+			.then(response => response.json())
+			.then(function(json) {
+				let option = document.createElement('option');
+				option.value = sdvx_id;
+				option.innerText = `${sdvx_id} (${json['card_name']})`;
+				options.push(option);
 
-                let option_rival = option.cloneNode(true);
-                options_rival.push(option_rival);
-            })
-            .catch(function(err) {
-                console.log(`loading ${sdvx_id}.json failed: ${err}`);
-                invalid_entries += 1;
-            })
-            .then(function() {
-                if (options.length < (idlist.length - invalid_entries)) return;
-                options.sort((s1, s2) => s1.value.localeCompare(s2.value));
-                options_rival.sort((s1, s2) => s1.value.localeCompare(s2.value));
+				let option_rival = option.cloneNode(true);
+				options_rival.push(option_rival);
+			})
+			.catch(function(err) {
+				console.log(`loading ${sdvx_id}.json failed: ${err}`);
+				invalid_entries += 1;
+			})
+			.then(function() {
+				if (options.length < (idlist.length - invalid_entries)) return;
+				options.sort((s1, s2) => s1.value.localeCompare(s2.value));
+				options_rival.sort((s1, s2) => s1.value.localeCompare(s2.value));
 
-                for (let option of options) {
-                    form_select.appendChild(option);
-                }
-                for (let option of options_rival) {
-                    form_select_rival.appendChild(option);
-                }
-            });
-    }
+				for (let option of options) {
+					form_select.appendChild(option);
+				}
+				for (let option of options_rival) {
+					form_select_rival.appendChild(option);
+				}
+			});
+	}
 }
 
 function load_card_data(sdvx_id) {
-    lock_inputs();
+	lock_inputs();
 
-    fetch(`scores/${sdvx_id}.json`)
-        .then(response => response.json())
-        .then(json => populate_card_data(json));
+	fetch(`scores/${sdvx_id}.json`)
+		.then(response => response.json())
+		.then(json => populate_card_data(json));
 
-    document.getElementById('vs').classList.remove('hidden');
-    document.getElementById('sdvx_id_rival').classList.remove('hidden');
+	document.getElementById('vs').classList.remove('hidden');
+	document.getElementById('sdvx_id_rival').classList.remove('hidden');
 
-    unlock_inputs();
+	unlock_inputs();
 }
 
 function set_rival(sdvx_id) {
-    lock_inputs();
+	lock_inputs();
 
-    if (sdvx_id) {
-        fetch(`scores/${sdvx_id}.json`)
-            .then(response => response.json())
-            .then(json => {
-                document.LocalScoreViewer_rival = json['scores'];
-                load_score_data();
-            });
-    } else {
-        document.LocalScoreViewer_rival = null;
-        load_score_data();
-    }
+	if (sdvx_id) {
+		fetch(`scores/${sdvx_id}.json`)
+			.then(response => response.json())
+			.then(json => {
+				document.LocalScoreViewer_rival = json['scores'];
+				load_score_data();
+			});
+	} else {
+		document.LocalScoreViewer_rival = null;
+		load_score_data();
+	}
 
-    unlock_inputs();
+	unlock_inputs();
 }
 
 function populate_card_data(data) {
-    // Store data globally
-    document.LocalScoreViewer_cardData = data;
+	// Store data globally
+	document.LocalScoreViewer_cardData = data;
 
-    // Card metadata
-    document.getElementById('player_name').innerText = data['card_name'];
-    document.getElementById('playcount').innerText = data['play_count'] ? data['play_count'].toLocaleString() : 'N/A';
-    document.getElementById('timestamp').innerText = (new Date(data['timestamp'])).toLocaleString();
-    let skill_text = '';
-    if (data['skill_level'] === 12) {
-        skill_text = `Lv∞.　${data['skill_name']}`;
-    } else {
-        skill_text = `Lv${pad_num(data['skill_level'], 2)}.　${data['skill_name']}`;
-    }
-    document.getElementById('skill_lv').innerText = skill_text;
+	// Card metadata
+	document.getElementById('player_name').innerText = data['card_name'];
+	document.getElementById('playcount').innerText = data['play_count'] ? data['play_count'].toLocaleString() : 'N/A';
+	document.getElementById('timestamp').innerText = (new Date(data['timestamp'])).toLocaleString();
+	let skill_text = '';
+	if (data['skill_level'] === 12) {
+		skill_text = `Lv∞.　${data['skill_name']}`;
+	} else {
+		skill_text = `Lv${pad_num(data['skill_level'], 2)}.　${data['skill_name']}`;
+	}
+	document.getElementById('skill_lv').innerText = skill_text;
 
-    // Prep the statistics section
-    let stats_section = document.getElementById('section_stats');
-    stats_section.classList.remove('hidden');
-    // Ensure container is empty
-    while (stats_section.childElementCount > 1) {
-        stats_section.removeChild(stats_section.children[1]);
-    }
-    // Add tab container
-    let tab_container = new_element('div', ['tab-container']);
-    stats_section.appendChild(tab_container);
+	// Prep the statistics section
+	let stats_section = document.getElementById('section_stats');
+	stats_section.classList.remove('hidden');
+	// Ensure container is empty
+	while (stats_section.childElementCount > 1) {
+		stats_section.removeChild(stats_section.children[1]);
+	}
+	// Add tab container
+	let tab_container = new_element('div', ['tab-container']);
+	stats_section.appendChild(tab_container);
 
-    // Score data
-    load_score_data();
+	// Score data
+	load_score_data();
 
-    // If I'm really worried about performance, I would loop through the scores Once
-    // and populate all the stats arrays once, but I think I can afford doing it
-    // multiple times, since it's only done once when the card data is loaded.
+	// If I'm really worried about performance, I would loop through the scores Once
+	// and populate all the stats arrays once, but I think I can afford doing it
+	// multiple times, since it's only done once when the card data is loaded.
 
-    // Stats data
-    compute_statistics();
+	// Stats data
+	compute_statistics();
 
-    // Score averages
-    compute_averages();
+	// Score averages
+	compute_averages();
 
-    // Volforce data
-    compute_volforce();
+	// Volforce data
+	compute_volforce();
 
-    // Minimize the stats section
-    let e = document.querySelector('#section_stats .section-header');
-    if (e.classList.contains('show-content')) {
-        e.classList.remove('show-content');
-        e.classList.add('hide-content');
-        setTimeout(() => e.parentNode.style.height = `${e.clientHeight}px`, 15);
-    }
+	// Minimize the stats section
+	let e = document.querySelector('#section_stats .section-header');
+	if (e.classList.contains('show-content')) {
+		e.classList.remove('show-content');
+		e.classList.add('hide-content');
+		setTimeout(() => e.parentNode.style.height = `${e.clientHeight}px`, 15);
+	}
 }
 
 function load_score_data() {
-    if (!document.LocalScoreViewer_cardData) {
-        return;
-    }
-    let user_scores = document.LocalScoreViewer_cardData['scores'];
-    let rival_scores = document.LocalScoreViewer_rival;
+	if (!document.LocalScoreViewer_cardData) {
+		return;
+	}
+	let user_scores = document.LocalScoreViewer_cardData['scores'];
+	let rival_scores = document.LocalScoreViewer_rival;
 
-    // Empty out the table
-    clear_table();
+	// Empty out the table
+	clear_table();
 
-    // Create table with raw data that's easier to handle
-    let table_entries = [];
-    for (const key of Object.keys(user_scores)) {
-        let [song_id, song_diff] = key.split('|');
-        song_id = parseInt(song_id);
-        song_diff = parseInt(song_diff);
+	// Create table with raw data that's easier to handle
+	let table_entries = [];
+	for (const key of Object.keys(user_scores)) {
+		let [song_id, song_diff] = key.split('|');
+		song_id = parseInt(song_id);
+		song_diff = parseInt(song_diff);
 
-        let song_data = document.LocalScoreViewer_songData[song_id];
-        let song_level = song_data['difficulties'][song_diff];
+		let song_data = document.LocalScoreViewer_songData[song_id];
+		let song_level = song_data['difficulties'][song_diff];
 
-        let user_status = user_scores[key]['clear_mark'];
-        let user_score = user_scores[key]['score'];
-        let user_grade = get_grade(user_score);
+		let user_status = user_scores[key]['clear_mark'] + 1;
+		let user_score = user_scores[key]['score'];
+		let user_grade = get_grade(user_score);
 
-        let rival_score = rival_scores ? rival_scores[key]?.score : undefined;
-        let score_delta = rival_score ? user_score - rival_score : undefined;
+		let rival_score = rival_scores ? rival_scores[key]?.score : undefined;
+		let score_delta = rival_score ? user_score - rival_score : undefined;
 
-        let table_entry = {
-            'song_name': song_data['song_name'].replace('(EXIT TUNES)', ''),
-            'song_artist': song_data['song_artist'],
-            'diff': song_diff,
-            'level': song_level,
-            'status': user_status,
-            'grade': user_grade,
-            'score': user_score,
-            'prev_data': document.LocalScoreViewer_cardData.updated_scores[key],
-            'rival_score': rival_score,
-            'rival_delta': score_delta,
-            '_id': song_id,
-            '_diff4': song_data['diff4_name']
-        };
+		let table_entry = {
+			'song_name': song_data['song_name'].replace('(EXIT TUNES)', ''),
+			'song_artist': song_data['song_artist'],
+			'diff': song_diff,
+			'level': song_level,
+			'status': user_status,
+			'grade': user_grade,
+			'score': user_score,
+			'prev_data': document.LocalScoreViewer_cardData.updated_scores[key],
+			'rival_score': rival_score,
+			'rival_delta': score_delta,
+			'_id': song_id,
+			'_diff4': song_data['diff4_name']
+		};
 
-        if (table_entry.prev_data !== undefined) {
-            table_entry.score_delta = table_entry.score - table_entry.prev_data.score;
-        }
+		if (table_entry.prev_data !== undefined) {
+			table_entry.score_delta = table_entry.score - table_entry.prev_data.score;
+		}
 
-        let table_row = document.createElement('tr');
-        for (let col of table_columns) {
-            if (!rival_scores && col === 'rival_score') {
-                continue;
-            }
+		let table_row = document.createElement('tr');
+		for (let col of table_columns) {
+			if (!rival_scores && col === 'rival_score') {
+				continue;
+			}
 
-            let table_cell = document.createElement('td');
-            let content = null;
-            table_cell.classList.add(`column-${col}`);
-            if (values_to_node.hasOwnProperty(col)) {
-                content = values_to_node[col](table_entry);
-            } else {
-                content = document.createTextNode(table_entry[col]);
-            }
-            table_cell.appendChild(content);
-            table_row.appendChild(table_cell);
-        }
+			let table_cell = document.createElement('td');
+			let content = null;
+			table_cell.classList.add(`column-${col}`);
+			if (values_to_node.hasOwnProperty(col)) {
+				content = values_to_node[col](table_entry);
+			} else {
+				content = document.createTextNode(table_entry[col]);
+			}
+			table_cell.appendChild(content);
+			table_row.appendChild(table_cell);
+		}
 
-        table_entry['html_node'] = table_row;
+		table_entry['html_node'] = table_row;
 
-        table_entries.push(table_entry);
-    }
+		table_entries.push(table_entry);
+	}
 
-    // Store this table globally
-    document.LocalScoreViewer_tableEntries = table_entries;
+	// Store this table globally
+	document.LocalScoreViewer_tableEntries = table_entries;
 
-    refresh_table();
+	refresh_table();
 }
 
 function refresh_table() {
-    if (!document.LocalScoreViewer_tableEntries) {
-        return;
-    }
+	if (!document.LocalScoreViewer_tableEntries) {
+		return;
+	}
 
-    let table = document.getElementById('score_table');
+	let table = document.getElementById('score_table');
 
-    // Apply sorting
-    let sort_method = table.getAttribute('data-sort');
-    if (sort_method) {
-        document.LocalScoreViewer_tableEntries.sort(sort_func(sort_method));
-    }
+	// Apply sorting
+	let sort_method = table.getAttribute('data-sort');
+	if (sort_method) {
+		document.LocalScoreViewer_tableEntries.sort(sort_func(sort_method));
+	}
 
-    // Insert to table and apply filter
-    let entry_count = 0;
-    let is_in_table = get_filter();
-    for (const entry of document.LocalScoreViewer_tableEntries) {
-        table.children[0].appendChild(entry['html_node']);
-        if (is_in_table(entry)) {
-            entry['html_node'].classList.remove('hidden');
-            if (entry_count % 2 === 0) {
-                entry['html_node'].classList.remove('odd');
-                entry['html_node'].classList.add('even');
-            } else {
-                entry['html_node'].classList.remove('even');
-                entry['html_node'].classList.add('odd');
-            }
-            entry_count++;
-        } else {
-            entry['html_node'].classList.add('hidden');
-        }
-    }
+	// Insert to table and apply filter
+	let entry_count = 0;
+	let is_in_table = get_filter();
+	for (const entry of document.LocalScoreViewer_tableEntries) {
+		table.children[0].appendChild(entry['html_node']);
+		if (is_in_table(entry)) {
+			entry['html_node'].classList.remove('hidden');
+			if (entry_count % 2 === 0) {
+				entry['html_node'].classList.remove('odd');
+				entry['html_node'].classList.add('even');
+			} else {
+				entry['html_node'].classList.remove('even');
+				entry['html_node'].classList.add('odd');
+			}
+			entry_count++;
+		} else {
+			entry['html_node'].classList.add('hidden');
+		}
+	}
 
-    // Show table only if it's not empty
-    let table_section = document.getElementById('section_table');
-    if (entry_count) {
-        document.getElementById('entry_num').innerText = entry_count;
-        table_section.classList.remove('hidden');
-        if (document.LocalScoreViewer_rival) {
-            document.getElementById('rival_col').classList.remove('hidden');
-        } else {
-            document.getElementById('rival_col').classList.add('hidden');
-        }
-    } else {
-        table_section.classList.add('hidden');
-    }
+	// Show table only if it's not empty
+	let table_section = document.getElementById('section_table');
+	if (entry_count) {
+		document.getElementById('entry_num').innerText = entry_count;
+		table_section.classList.remove('hidden');
+		if (document.LocalScoreViewer_rival) {
+			document.getElementById('rival_col').classList.remove('hidden');
+		} else {
+			document.getElementById('rival_col').classList.add('hidden');
+		}
+	} else {
+		table_section.classList.add('hidden');
+	}
 }
 
 function compute_statistics() {
-    let card_data = document.LocalScoreViewer_cardData;
-    let song_data = document.LocalScoreViewer_songData;
+	let card_data = document.LocalScoreViewer_cardData;
+	let song_data = document.LocalScoreViewer_songData;
 
-    // Count all the charts
-    let counter_level = {
-        status: Array.from(Array(5), () => new Array(21).fill(0)),
-        grade: Array.from(Array(10), () => new Array(21).fill(0))
-    };
-    let counter_diff = {
-        status: Array.from(Array(5), () => new Array(6).fill(0)),
-        grade: Array.from(Array(10), () => new Array(6).fill(0))
-    };
+	// Count all the charts
+	let counter_level = {
+		status: Array.from(Array(6), () => new Array(21).fill(0)),
+		grade: Array.from(Array(10), () => new Array(21).fill(0))
+	};
+	let counter_diff = {
+		status: Array.from(Array(6), () => new Array(6).fill(0)),
+		grade: Array.from(Array(10), () => new Array(6).fill(0))
+	};
 
-    for (let key in card_data.scores) {
-        if (!card_data.scores.hasOwnProperty(key)) continue;
+	for (const [idx, val] of document.LocalScoreViewer_dbTally.level.entries()) {
+		counter_level.status[0][idx] = val;
+		counter_level.status[0][20] += val;
+	}
+	for (const [idx, val] of document.LocalScoreViewer_dbTally.diff.entries()){
+		counter_diff.status[0][idx] = val;
+		counter_diff.status[0][5] += val;
+	}
+	
 
-        let score_data = card_data.scores[key];
-        let score_grade = get_grade(score_data.score);
-        let [sid, dif] = key.split('|');
-        sid = parseInt(sid);
-        dif = parseInt(dif);
+	for (let key in card_data.scores) {
+		if (!card_data.scores.hasOwnProperty(key)) continue;
 
-        let lv = song_data[sid].difficulties[dif];
+		let score_data = card_data.scores[key];
+		let score_grade = get_grade(score_data.score);
+		let [sid, dif] = key.split('|');
+		sid = parseInt(sid);
+		dif = parseInt(dif);
 
-        counter_level.status[score_data.clear_mark][lv - 1]++;
-        counter_level.grade[score_grade][lv - 1]++;
-        counter_diff.status[score_data.clear_mark][dif]++;
-        counter_diff.grade[score_grade][dif]++;
+		let lv = song_data[sid].difficulties[dif];
 
-        // Totals (kinda hacky)
-        counter_level.status[score_data.clear_mark][20]++;
-        counter_level.grade[score_grade][20]++;
-        counter_diff.status[score_data.clear_mark][5]++;
-        counter_diff.grade[score_grade][5]++;
-    }
+		counter_level.status[score_data.clear_mark + 1][lv - 1]++;
+		counter_level.grade[score_grade][lv - 1]++;
+		counter_diff.status[score_data.clear_mark + 1][dif]++;
+		counter_diff.grade[score_grade][dif]++;
+		counter_level.status[0][lv - 1]--;
+		counter_diff.status[0][dif]--;
 
-    let level_labels = Array.from(Array(20).keys(), x => `Lv${pad_num(x + 1, 2)}`);
-    level_labels.push('Total');
-    let diff_labels = [...const_names.diff.map(x => `images/diff${x}.png`), const_names.diff4.map(x => `images/diff${x}.png`)];
-    diff_labels.push('Total');
-    let grade_labels = Array.from(Array(5).keys(), x => `images/grade${x + 5}.png`);
-    let status_labels = Array.from(Array(5).keys(), x => `images/status${x}.png`);
+		// Totals (kinda hacky)
+		counter_level.status[score_data.clear_mark + 1][20]++;
+		counter_level.grade[score_grade][20]++;
+		counter_diff.status[score_data.clear_mark + 1][5]++;
+		counter_diff.grade[score_grade][5]++;
+		counter_level.status[0][20]--;
+		counter_diff.status[0][5]--;
+	}
 
-    add_stats_page('LvStatus', 'Level/Status', create_stats_section(level_labels, status_labels, counter_level.status));
-    add_stats_page('LvGrade', 'Level/Grade', create_stats_section(level_labels, grade_labels, counter_level.grade.slice(5)));
-    add_stats_page('DifStatus', 'Diff/Status', create_stats_section(diff_labels, status_labels, counter_diff.status, true));
-    add_stats_page('DifGrade', 'Diff/Grade', create_stats_section(diff_labels, grade_labels, counter_diff.grade.slice(5), true));
+	let level_labels = Array.from(Array(20).keys(), x => `Lv${pad_num(x + 1, 2)}`);
+	level_labels.push('Total');
+	let diff_labels = [...const_names.diff.map(x => `images/diff${x}.png`), const_names.diff4.map(x => `images/diff${x}.png`)];
+	diff_labels.push('Total');
+	let grade_labels = Array.from(Array(5).keys(), x => `images/grade${x + 5}.png`);
+	let status_labels = Array.from(Array(6).keys(), x => `images/status${x}.png`);
+
+	add_stats_page('LvStatus', 'Level/Status', create_stats_section(level_labels, status_labels, counter_level.status));
+	add_stats_page('LvGrade', 'Level/Grade', create_stats_section(level_labels, grade_labels, counter_level.grade.slice(5)));
+	add_stats_page('DifStatus', 'Diff/Status', create_stats_section(diff_labels, status_labels, counter_diff.status, true));
+	add_stats_page('DifGrade', 'Diff/Grade', create_stats_section(diff_labels, grade_labels, counter_diff.grade.slice(5), true));
 }
 
 function compute_averages() {
-    let card_data = document.LocalScoreViewer_cardData;
-    let song_data = document.LocalScoreViewer_songData;
+	let card_data = document.LocalScoreViewer_cardData;
+	let song_data = document.LocalScoreViewer_songData;
 
-    let averages = Array.from(Array(20), () => new Array(2).fill(0));
+	let averages = Array.from(Array(20), () => new Array(2).fill(0));
 
-    for (let key in card_data.scores) {
-        if (!card_data.scores.hasOwnProperty(key)) continue;
+	for (let key in card_data.scores) {
+		if (!card_data.scores.hasOwnProperty(key)) continue;
 
-        let score_data = card_data.scores[key];
-        let [sid, dif] = key.split('|');
-        sid = parseInt(sid);
-        dif = parseInt(dif);
+		let score_data = card_data.scores[key];
+		let [sid, dif] = key.split('|');
+		sid = parseInt(sid);
+		dif = parseInt(dif);
 
-        let lv = song_data[sid].difficulties[dif];
+		let lv = song_data[sid].difficulties[dif];
 
-        // Score averages
-        averages[lv - 1][0] += score_data.score;
-        averages[lv - 1][1]++;
-    }
+		// Score averages
+		averages[lv - 1][0] += score_data.score;
+		averages[lv - 1][1]++;
+	}
 
-    // Compute the average
-    averages = averages.map(s => s[1] === 0 ? 0 : Math.floor(s[0] / s[1]));
+	// Compute the average
+	averages = averages.map(s => s[1] === 0 ? 0 : Math.floor(s[0] / s[1]));
 
-    // Create nodes
-    let nodes = [];
+	// Create nodes
+	let nodes = [];
 
-    for (let i=0; i < 10; i++) {
-        let entry_container = new_element('div', ['subsection-container']);
+	for (let i=0; i < 10; i++) {
+		let entry_container = new_element('div', ['subsection-container']);
 
-        for (let j=0; j < 2; j++) {
-            let header = new_element('div', ['single-subheader']);
-            let content = new_element('div', ['subcontent-container', 'w-200px']);
+		for (let j=0; j < 2; j++) {
+			let header = new_element('div', ['single-subheader']);
+			let content = new_element('div', ['subcontent-container', 'w-200px']);
 
-            let lv = j * 10 + i;
-            header.innerText = `Lv${(lv + 1)/10 >> 0 ? '' : '0'}${lv + 1}`;
-            content.innerText = averages[lv].toLocaleString();
+			let lv = j * 10 + i;
+			header.innerText = `Lv${(lv + 1)/10 >> 0 ? '' : '0'}${lv + 1}`;
+			content.innerText = averages[lv].toLocaleString();
 
-            entry_container.appendChild(header);
-            entry_container.appendChild(content);
-        }
-        nodes.push(entry_container);
-    }
+			entry_container.appendChild(header);
+			entry_container.appendChild(content);
+		}
+		nodes.push(entry_container);
+	}
 
-    add_stats_page('LvAvgs', 'Averages', nodes);
+	add_stats_page('LvAvgs', 'Averages', nodes);
 }
 
 function compute_volforce() {
-    let scores = document.LocalScoreViewer_cardData.scores;
-    let song_db = document.LocalScoreViewer_songData;
-    let temp_vf_table = [];
-    let least_eligible_vf = 0;
+	let scores = document.LocalScoreViewer_cardData.scores;
+	let song_db = document.LocalScoreViewer_songData;
+	let temp_vf_table = [];
+	let least_eligible_vf = 0;
 
-    for (let key in scores) {
-        if (!scores.hasOwnProperty(key)) continue;
+	for (let key in scores) {
+		if (!scores.hasOwnProperty(key)) continue;
 
-        let [song_id, song_diff] = key.split('|');
-        let status = scores[key]['clear_mark'];
-        let score = scores[key]['score'];
+		let [song_id, song_diff] = key.split('|');
+		let status = scores[key]['clear_mark'];
+		let score = scores[key]['score'];
 
-        song_id = parseInt(song_id);
-        song_diff = parseInt(song_diff);
+		song_id = parseInt(song_id);
+		song_diff = parseInt(song_diff);
 
-        let song_data = song_db[song_id];
-        let song_level = song_data['difficulties'][song_diff];
-        let score_grade = get_grade(score);
+		let song_data = song_db[song_id];
+		let song_level = song_data['difficulties'][song_diff];
+		let score_grade = get_grade(score);
 
-        let volforce = song_level * 2 * score / 1e7 * vf_multiplier.status[status] * vf_multiplier.grade[score_grade];
-        temp_vf_table.push([song_id, song_diff, volforce * 10]);
-    }
+		let volforce = song_level * 2 * score / 1e7 * vf_multiplier.status[status] * vf_multiplier.grade[score_grade];
+		temp_vf_table.push([song_id, song_diff, volforce * 10]);
+	}
 
-    temp_vf_table.sort(function(a, b) {
-        return b[2] - a[2];
-    });
+	temp_vf_table.sort(function(a, b) {
+		return b[2] - a[2];
+	});
 
-    // Capped at 50 charts
-    least_eligible_vf = temp_vf_table[49][2];
-    // Round down to 1 decimal point
-    least_eligible_vf = Math.trunc(least_eligible_vf);
-    let vf_table = temp_vf_table.filter(e => e[2] >= least_eligible_vf);
+	// Capped at 50 charts
+	least_eligible_vf = temp_vf_table[49][2];
+	// Round down to 1 decimal point
+	least_eligible_vf = Math.trunc(least_eligible_vf);
+	let vf_table = temp_vf_table.filter(e => e[2] >= least_eligible_vf);
 
-    let nodes = [];
-    for (let i=0; i < vf_table.length / 2; i++) {
-        let entry_container = new_element('div', ['subsection-container']);
+	let nodes = [];
+	for (let i=0; i < vf_table.length / 2; i++) {
+		let entry_container = new_element('div', ['subsection-container']);
 
-        for (let j=0; j < 2; j++) {
-            let header = new_element('div', ['subcontent-container', 'volforce', 'w-300px']);
-            let text_wrapper = new_element('div', ['center-text']);
-            let img_wrap = new_element('div', ['subcontent-container', 'volforce']);
-            let content = new_element('div', ['subcontent-container', 'vf-text']);
-            let tooltip = new_element('span', ['tooltip-text']);
+		for (let j=0; j < 2; j++) {
+			let header = new_element('div', ['subcontent-container', 'volforce', 'w-300px']);
+			let text_wrapper = new_element('div', ['center-text']);
+			let img_wrap = new_element('div', ['subcontent-container', 'volforce']);
+			let content = new_element('div', ['subcontent-container', 'vf-text']);
+			let tooltip = new_element('span', ['tooltip-text']);
 
-            let index = i * 2 + j;
-            let entry = vf_table[index];
-            if (entry === undefined) {
-                entry = vf_table[index - 1];
-                header.classList.add('invisible');
-                content.classList.add('invisible');
-                img_wrap.classList.add('invisible');
-            }
+			let index = i * 2 + j;
+			let entry = vf_table[index];
+			if (entry === undefined) {
+				entry = vf_table[index - 1];
+				header.classList.add('invisible');
+				content.classList.add('invisible');
+				img_wrap.classList.add('invisible');
+			}
 
-            let dif_img = document.createElement('img');
-            if (entry[1] === 4) {
-                dif_img.src = `images/diff${song_db[entry[0]].diff4_name}.png`;
-            } else {
-                dif_img.src = `images/diff${const_names.diff[entry[1]]}.png`;
-            }
+			let dif_img = document.createElement('img');
+			if (entry[1] === 4) {
+				dif_img.src = `images/diff${song_db[entry[0]].diff4_name}.png`;
+			} else {
+				dif_img.src = `images/diff${const_names.diff[entry[1]]}.png`;
+			}
 
-            let song_name = song_db[entry[0]].song_name.replace('(EXIT TUNES)', '');
-            let text_container = new_element('span');
-            text_container.innerText = song_name;
-            text_wrapper.appendChild(text_container);
-            content.innerText = `${Math.trunc(entry[2]) / 10} VF`;
-            tooltip.innerText = `${(Math.trunc(entry[2] * 100) / 1000).toFixed(3)} VF`;
+			let song_name = song_db[entry[0]].song_name.replace('(EXIT TUNES)', '');
+			let text_container = new_element('span');
+			text_container.innerText = song_name;
+			text_wrapper.appendChild(text_container);
+			content.innerText = `${Math.trunc(entry[2]) / 10} VF`;
+			tooltip.innerText = `${(Math.trunc(entry[2] * 100) / 1000).toFixed(3)} VF`;
 
-            content.appendChild(tooltip);
-            header.appendChild(text_wrapper);
-            img_wrap.appendChild(dif_img);
+			content.appendChild(tooltip);
+			header.appendChild(text_wrapper);
+			img_wrap.appendChild(dif_img);
 
-            entry_container.appendChild(header);
-            entry_container.appendChild(img_wrap);
-            entry_container.appendChild(content);
-        }
-        nodes.push(entry_container);
-    }
+			entry_container.appendChild(header);
+			entry_container.appendChild(img_wrap);
+			entry_container.appendChild(content);
+		}
+		nodes.push(entry_container);
+	}
 
-    let footer = new_element('div', ['volforce', 'table-footer']);
-    footer.innerText = `${vf_table.length} charts in Volforce folder | Total Volforce is ${(vf_table.slice(0, 50).map(e => Math.trunc(e[2])).reduce((a, b) => a + b, 0) / 1000).toFixed(3)}`;
-    nodes.push(footer);
+	let footer = new_element('div', ['volforce', 'table-footer']);
+	footer.innerText = `${vf_table.length} charts in Volforce folder | Total Volforce is ${(vf_table.slice(0, 50).map(e => Math.trunc(e[2])).reduce((a, b) => a + b, 0) / 1000).toFixed(3)}`;
+	nodes.push(footer);
 
-    // Resize divs to fit the spans
-    add_stats_page('Volforce', 'Volforce', nodes);
-    document.querySelector('[data-tabid="Volforce"]').addEventListener('click', function() {
-        for (let el of document.querySelectorAll('.center-text')) {
-            el.style.width = `${el.firstChild.getBoundingClientRect().width}px`;
-        }
-    });
+	// Resize divs to fit the spans
+	add_stats_page('Volforce', 'Volforce', nodes);
+	document.querySelector('[data-tabid="Volforce"]').addEventListener('click', function() {
+		for (let el of document.querySelectorAll('.center-text')) {
+			el.style.width = `${el.firstChild.getBoundingClientRect().width}px`;
+		}
+	});
+}
+
+function compute_db_totals() {
+	let song_data = document.LocalScoreViewer_songData;
+	let tally = {
+		level: Array(20).fill(0),
+		diff: Array(5).fill(0)
+	};
+	for (const [sid, sdata] of Object.entries(song_data)) {
+		for (const [idx, lv] of sdata.difficulties.entries()) {
+			if (lv !== null) {
+				tally.level[lv - 1]++;
+				tally.diff[idx]++;
+			}
+		}
+	}
+	document.LocalScoreViewer_dbTally = tally;
 }
 
 function create_stats_section(row_labels, column_labels, cell_values, row_is_image) {
-    let nodes = [];
+	let nodes = [];
 
-    for (let i=0; i < row_labels.length; i++) {
-        let row_text = row_labels[i];
+	for (let i=0; i < row_labels.length; i++) {
+		let row_text = row_labels[i];
 
-        let container = new_element('div', ['subsection-container']);
-        let header = new_element('div', ['single-subheader']);
-        let content = new_element('div', ['subcontent-container']);
+		let container = new_element('div', ['subsection-container']);
+		let header = new_element('div', ['single-subheader']);
+		let content = new_element('div', ['subcontent-container']);
 
-        if (!row_is_image || (typeof row_text === 'string' && !row_text.endsWith('.png'))) {
-            header.innerText = row_text;
-        } else {
-            let img_links, head_img;
-            if (typeof row_text === 'string') {
-                img_links = [row_text];
-            } else {
-                img_links = row_text;
-            }
-            for (let img_link of img_links) {
-                head_img = document.createElement('img');
-                head_img.src = img_link;
-                header.appendChild(head_img)
-            }
-        }
+		if (!row_is_image || (typeof row_text === 'string' && !row_text.endsWith('.png'))) {
+			header.innerText = row_text;
+		} else {
+			let img_links, head_img;
+			if (typeof row_text === 'string') {
+				img_links = [row_text];
+			} else {
+				img_links = row_text;
+			}
+			for (let img_link of img_links) {
+				head_img = document.createElement('img');
+				head_img.src = img_link;
+				header.appendChild(head_img)
+			}
+		}
 
-        for (let j=0; j < column_labels.length; j++) {
-            let column_text = column_labels[j];
+		for (let j=0; j < column_labels.length; j++) {
+			let column_text = column_labels[j];
 
-            let cell = new_element('div', ['flex-cell']);
-            let c_head = new_element('div', ['flex-cell-head']);
-            let c_content = new_element('div', ['flex-cell-content']);
-            let cell_img = document.createElement('img');
+			let cell = new_element('div', ['flex-cell']);
+			let c_head = new_element('div', ['flex-cell-head']);
+			let c_content = new_element('div', ['flex-cell-content']);
+			let cell_img = document.createElement('img');
 
-            cell_img.src = column_text;
-            c_head.appendChild(cell_img);
-            c_content.innerText = cell_values[j][i];
+			cell_img.src = column_text;
+			c_head.appendChild(cell_img);
+			c_content.innerText = cell_values[j][i];
 
-            cell.appendChild(c_content);
-            cell.appendChild(c_head);
-            content.appendChild(cell);
-        }
+			cell.appendChild(c_content);
+			cell.appendChild(c_head);
+			content.appendChild(cell);
+		}
 
-        container.appendChild(header);
-        container.appendChild(content);
-        nodes.push(container);
-    }
+		container.appendChild(header);
+		container.appendChild(content);
+		nodes.push(container);
+	}
 
-    return nodes;
+	return nodes;
 }
 
 function add_stats_page(tab_id, tab_text, node_list) {
-    // Wrap a list of nodes in a container, and insert it into the statistics section as a tab page
-    let tab_container = document.querySelector('.tab-container');
-    let stats_container = document.getElementById('section_stats');
+	// Wrap a list of nodes in a container, and insert it into the statistics section as a tab page
+	let tab_container = document.querySelector('.tab-container');
+	let stats_container = document.getElementById('section_stats');
 
-    // Create new tab
-    let tab_header = new_element('div', ['tab-head']);
-    tab_header.innerText = tab_text;
-    tab_header.setAttribute('data-tabid', tab_id);
-    tab_header.addEventListener('click', function() {
-        // Hide all tab pages except this one
-        for (let el of document.getElementsByClassName('single-subsection')) {
-            el.style.display = 'none';
-        }
-        document.getElementById(this.getAttribute('data-tabid')).style.display = 'initial';
+	// Create new tab
+	let tab_header = new_element('div', ['tab-head']);
+	tab_header.innerText = tab_text;
+	tab_header.setAttribute('data-tabid', tab_id);
+	tab_header.addEventListener('click', function() {
+		// Hide all tab pages except this one
+		for (let el of document.getElementsByClassName('single-subsection')) {
+			el.style.display = 'none';
+		}
+		document.getElementById(this.getAttribute('data-tabid')).style.display = 'initial';
 
-        // Mark this tab as active
-        for (let el of document.querySelector('.tab-container').children) {
-            el.classList.remove('active-tab');
-        }
-        this.classList.add('active-tab');
+		// Mark this tab as active
+		for (let el of document.querySelector('.tab-container').children) {
+			el.classList.remove('active-tab');
+		}
+		this.classList.add('active-tab');
 
-        // Set the section height to fit this one (and that it animates with CSS)
-        let container = document.getElementById('section_stats');
-        if (!container.firstElementChild.classList.contains('hide-content')) {
-            let cur_height = container.clientHeight - 20;
-            container.style.height = 'auto';
-            let target_height = container.clientHeight - 20;
-            container.style.height = `${cur_height}px`;
-            // Delay setting the new height by 10ms -- it doesn't animate otherwise
-            setTimeout(() => container.style.height = `${target_height}px`, 10);
-        }
-    });
-    tab_container.appendChild(tab_header);
+		// Set the section height to fit this one (and that it animates with CSS)
+		let container = document.getElementById('section_stats');
+		if (!container.firstElementChild.classList.contains('hide-content')) {
+			let cur_height = container.clientHeight - 20;
+			container.style.height = 'auto';
+			let target_height = container.clientHeight - 20;
+			container.style.height = `${cur_height}px`;
+			// Delay setting the new height by 10ms -- it doesn't animate otherwise
+			setTimeout(() => container.style.height = `${target_height}px`, 10);
+		}
+	});
+	tab_container.appendChild(tab_header);
 
-    // Insert corresponding tab page
-    let tab_page = new_element('div', ['single-subsection']);
-    tab_page.id = tab_id;
-    tab_page.style.display = 'none';
-    for (let node of node_list) tab_page.appendChild(node);
-    stats_container.appendChild(tab_page);
+	// Insert corresponding tab page
+	let tab_page = new_element('div', ['single-subsection']);
+	tab_page.id = tab_id;
+	tab_page.style.display = 'none';
+	for (let node of node_list) tab_page.appendChild(node);
+	stats_container.appendChild(tab_page);
 
-    // Switch to first tab
-    tab_container.firstChild.click();
+	// Switch to first tab
+	tab_container.firstChild.click();
 }
 
 function banners(){
-    let path = `url("images/banners/` + Math.floor(Math.random() * 10) + `.png")`;
-    let bg = document.getElementById("topheader").style;
-    bg.backgroundImage = path;
+	let path = `url("images/banners/` + Math.floor(Math.random() * 10) + `.png")`;
+	let bg = document.getElementById("topheader").style;
+	bg.backgroundImage = path;
 }
 
 // EVENT LISTENERS //
 
 function apply_sort() {
-    let table = document.getElementById('score_table');
-    let cur_sort_method = this.getAttribute('data-sortname');
-    if (table.getAttribute('data-sort') === cur_sort_method) {
-        this.classList.remove('normal-sort');
-        this.classList.add('reverse-sort');
-        table.setAttribute('data-sort', `!${cur_sort_method}`);
-    } else if (table.getAttribute('data-sort') === `!${cur_sort_method}`) {
-        this.classList.remove('reverse-sort');
-        if (cur_sort_method === 'score' || cur_sort_method === 'rival_score') {
-            this.classList.add('special-sort');
-            table.setAttribute('data-sort', `~${cur_sort_method}`);
-        } else {
-            this.classList.add('normal-sort');
-            table.setAttribute('data-sort', cur_sort_method);
-        }
-    } else if (table.getAttribute('data-sort') === `~${cur_sort_method}`) {
-        this.classList.remove('special-sort');
-        if (cur_sort_method === 'rival_score') {
-            this.classList.add('special-reverse-sort');
-            table.setAttribute('data-sort', `~!${cur_sort_method}`);
-        } else {
-            this.classList.add('normal-sort');
-            table.setAttribute('data-sort', cur_sort_method);
-        }
-    } else if (table.getAttribute('data-sort') === `~!${cur_sort_method}`) {
-        this.classList.remove('special-reverse-sort');
-        this.classList.add('normal-sort');
-        table.setAttribute('data-sort', cur_sort_method);
-    } else {
-        let headers = Array.from(document.getElementsByTagName('th'));
-        let previous_sort = headers.filter(e => e.classList.contains('normal-sort') || e.classList.contains('reverse-sort') || e.classList.contains('special-sort') || e.classList.contains('special-reverse-sort'));
-        if (previous_sort.length) {
-            previous_sort[0].classList.remove('normal-sort', 'reverse-sort', 'special-sort', 'special-reverse-sort');
-        }
-        this.classList.add('normal-sort');
-        table.setAttribute('data-sort', cur_sort_method);
-    }
+	let table = document.getElementById('score_table');
+	let cur_sort_method = this.getAttribute('data-sortname');
+	if (table.getAttribute('data-sort') === cur_sort_method) {
+		this.classList.remove('normal-sort');
+		this.classList.add('reverse-sort');
+		table.setAttribute('data-sort', `!${cur_sort_method}`);
+	} else if (table.getAttribute('data-sort') === `!${cur_sort_method}`) {
+		this.classList.remove('reverse-sort');
+		if (cur_sort_method === 'score' || cur_sort_method === 'rival_score') {
+			this.classList.add('special-sort');
+			table.setAttribute('data-sort', `~${cur_sort_method}`);
+		} else {
+			this.classList.add('normal-sort');
+			table.setAttribute('data-sort', cur_sort_method);
+		}
+	} else if (table.getAttribute('data-sort') === `~${cur_sort_method}`) {
+		this.classList.remove('special-sort');
+		if (cur_sort_method === 'rival_score') {
+			this.classList.add('special-reverse-sort');
+			table.setAttribute('data-sort', `~!${cur_sort_method}`);
+		} else {
+			this.classList.add('normal-sort');
+			table.setAttribute('data-sort', cur_sort_method);
+		}
+	} else if (table.getAttribute('data-sort') === `~!${cur_sort_method}`) {
+		this.classList.remove('special-reverse-sort');
+		this.classList.add('normal-sort');
+		table.setAttribute('data-sort', cur_sort_method);
+	} else {
+		let headers = Array.from(document.getElementsByTagName('th'));
+		let previous_sort = headers.filter(e => e.classList.contains('normal-sort') || e.classList.contains('reverse-sort') || e.classList.contains('special-sort') || e.classList.contains('special-reverse-sort'));
+		if (previous_sort.length) {
+			previous_sort[0].classList.remove('normal-sort', 'reverse-sort', 'special-sort', 'special-reverse-sort');
+		}
+		this.classList.add('normal-sort');
+		table.setAttribute('data-sort', cur_sort_method);
+	}
 
-    refresh_table();
+	refresh_table();
 }
 
 function reset_sort() {
-    let table = document.getElementById('score_table');
-    let headers = Array.from(document.getElementsByTagName('th'));
-    let previous_sort = headers.filter(e => e.classList.contains('normal-sort') || e.classList.contains('reverse-sort') || e.classList.contains('special-sort') || e.classList.contains('special-reverse-sort'));
-    if (previous_sort.length) {
-        previous_sort[0].classList.remove('normal-sort', 'reverse-sort', 'special-sort', 'special-reverse-sort');
-    }
-    table.setAttribute('data-sort', '!_id');
+	let table = document.getElementById('score_table');
+	let headers = Array.from(document.getElementsByTagName('th'));
+	let previous_sort = headers.filter(e => e.classList.contains('normal-sort') || e.classList.contains('reverse-sort') || e.classList.contains('special-sort') || e.classList.contains('special-reverse-sort'));
+	if (previous_sort.length) {
+		previous_sort[0].classList.remove('normal-sort', 'reverse-sort', 'special-sort', 'special-reverse-sort');
+	}
+	table.setAttribute('data-sort', '!_id');
 
-    refresh_table();
+	refresh_table();
 }
 
 function change_filter() {
-    let key = this.getAttribute('data-filter');
-    let apply_status = this.getAttribute('data-apply');
-    for (let e of filter_fields[key]) {
-        let x = document.getElementById(key + e);
-        if (x) x.checked = apply_status;
-    }
-    if (apply_status) {
-        this.setAttribute('data-apply', '');
-        this.value = 'Clear all';
-    } else {
-        this.setAttribute('data-apply', '1');
-        this.value = 'Apply all';
-    }
+	let key = this.getAttribute('data-filter');
+	let apply_status = this.getAttribute('data-apply');
+	for (let e of filter_fields[key]) {
+		let x = document.getElementById(key + e);
+		if (x) x.checked = apply_status;
+	}
+	if (apply_status) {
+		this.setAttribute('data-apply', '');
+		this.value = 'Clear all';
+	} else {
+		this.setAttribute('data-apply', '1');
+		this.value = 'Apply all';
+	}
 
-    refresh_table();
+	refresh_table();
 }
 
 function checkbox_listener() {
-    let type = this.id.match(/[a-zA-Z]*/)[0];
-    let button = document.querySelector(`input[type="button"][data-filter="${type}"]`);
-    let ticked_boxes = Array.from(document.querySelectorAll(`input[type="checkbox"][id^=${type}]`));
-    ticked_boxes = ticked_boxes.filter(e => e.checked);
-    if (ticked_boxes.length) {
-        button.setAttribute('data-apply', '');
-        button.value = 'Clear all';
-    } else {
-        button.setAttribute('data-apply', '1');
-        button.value = 'Apply all';
-    }
+	let type = this.id.match(/[a-zA-Z]*/)[0];
+	let button = document.querySelector(`input[type="button"][data-filter="${type}"]`);
+	let ticked_boxes = Array.from(document.querySelectorAll(`input[type="checkbox"][id^=${type}]`));
+	ticked_boxes = ticked_boxes.filter(e => e.checked);
+	if (ticked_boxes.length) {
+		button.setAttribute('data-apply', '');
+		button.value = 'Clear all';
+	} else {
+		button.setAttribute('data-apply', '1');
+		button.value = 'Apply all';
+	}
 
-    // Get checked boxes
-    let filter_checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
-    let filter_value = 0;
-    let val = 1;
-    for (let checkbox of filter_checkboxes) {
-        if (checkbox.checked) filter_value += val;
-        val *= 2;
-    }
+	// Get checked boxes
+	let filter_checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+	let filter_value = 0;
+	let val = 1;
+	for (let checkbox of filter_checkboxes) {
+		if (checkbox.checked) filter_value += val;
+		val *= 2;
+	}
 
-    // Set cookie
-    let key_name = 'enabledFilters';
-    let expiry_time = new Date();
-    expiry_time.setTime(expiry_time.getTime() + 365 * 24 * 60 * 60 * 1000);
-    document.cookie = `${key_name}=${filter_value}; expires=${expiry_time.toUTCString()}; path=/`;
+	// Set cookie
+	let key_name = 'enabledFilters';
+	let expiry_time = new Date();
+	expiry_time.setTime(expiry_time.getTime() + 365 * 24 * 60 * 60 * 1000);
+	document.cookie = `${key_name}=${filter_value}; expires=${expiry_time.toUTCString()}; path=/`;
 
-    refresh_table();
+	refresh_table();
 }
 
 // HELPER FUNCTIONS //
 
 function lock_inputs() {
-    let e = document.getElementById('sdvx_id');
-    e.disabled = true;
+	let e = document.getElementById('sdvx_id');
+	e.disabled = true;
 
-    e = document.getElementById('sdvx_id_rival');
-    e.disabled = true;
+	e = document.getElementById('sdvx_id_rival');
+	e.disabled = true;
 }
 
 function unlock_inputs() {
-    let e = document.getElementById('sdvx_id');
-    e.disabled = false;
+	let e = document.getElementById('sdvx_id');
+	e.disabled = false;
 
-    e = document.getElementById('sdvx_id_rival');
-    e.disabled = false;
+	e = document.getElementById('sdvx_id_rival');
+	e.disabled = false;
 }
 
 function get_filter() {
-    // All in one function for filtering
-    let filter = {};
-    for (let type in filter_fields) {
-        if (!filter_fields.hasOwnProperty(type)) continue;
+	// All in one function for filtering
+	let filter = {};
+	for (const type of Object.keys(filter_fields)) {
+		filter[type] = filter_fields[type].map(e => document.getElementById(type + e)?.checked);
+	}
 
-        filter[type] = filter_fields[type].map(e => document.getElementById(type + e).checked);
-    }
-
-    return function (entry) {
-        for (let type in filter_fields) {
-            if (!filter_fields.hasOwnProperty(type)) continue;
-            if (!filter[type][entry[type]]) return false;
-        }
-        return true;
-    };
+	return function (entry) {
+		for (const type of Object.keys(filter_fields)) {
+			if (!filter[type][entry[type]]) return false;
+		}
+		return true;
+	};
 }
 
 function clear_table() {
-    let table = document.getElementById('score_table').children[0];
-    while (table.children.length > 1) {
-        table.removeChild(table.lastChild);
-    }
+	let table = document.getElementById('score_table').children[0];
+	while (table.children.length > 1) {
+		table.removeChild(table.lastChild);
+	}
 }
 
 function sort_func(key) {
-    let invert = false;
-    let special_sort = false;
-    if (key.startsWith('~')) {
-        special_sort = true;
-        key = key.substr(1);
-    }
-    if (key.startsWith('!')) {
-        invert = true;
-        key = key.substr(1);
-    }
+	let invert = false;
+	let special_sort = false;
+	if (key.startsWith('~')) {
+		special_sort = true;
+		key = key.substr(1);
+	}
+	if (key.startsWith('!')) {
+		invert = true;
+		key = key.substr(1);
+	}
 
-    if (key === 'song_name') {
-        return function(a, b) {
-            return (a.song_name < b.song_name ? -1 : a.song_name === b.song_name ? 0 : 1) * (1 - 2 * invert);
-        }
-    } else {
-        if (!special_sort) {
-            if (key === 'diff') {
-                return function (a, b) {
-                    return ((a[key] - diff4_sort_modifier[a['_diff4']]) - (b[key] - diff4_sort_modifier[b['_diff4']])) * (1 - 2 * invert);
-                }
-            } else {
-                return function (a, b) {
-                    return a[key] === undefined ? 1 : b[key] === undefined ? -1 : (a[key] - b[key]) * (1 - 2 * invert);
-                }
-            }
-        } else {
-            if (key === 'score') {
-                return function(a, b) {
-                    if (a.score_delta === undefined && b.score_delta === undefined) {
-                        return b._id - a._id;
-                    } else if (a.score_delta === undefined && b.score_delta !== undefined) {
-                        return 1;
-                    } else if (a.score_delta !== undefined && b.score_delta === undefined) {
-                        return -1;
-                    } else {
-                        if (a.score_delta === b.score_delta) {
-                            return a.score === b.score ? b._id - a._id : (b.score - a.score);
-                        } else {
-                            return b.score_delta - a.score_delta;
-                        }
-                    }
-                }
-            } else if (key === 'rival_score') {
-                return function(a, b) {
-                    if (a.rival_delta === undefined && b.rival_delta === undefined) {
-                        return b._id - a._id;
-                    } else if (a.rival_delta === undefined && b.rival_delta !== undefined) {
-                        return 1;
-                    } else if (a.rival_delta !== undefined && b.rival_delta === undefined) {
-                        return -1;
-                    } else {
-                        if (a.rival_delta === b.rival_delta) {
-                            return a.score === b.score ? b._id - a._id : ((b.score - a.score) * (1 - 2 * invert));
-                        } else {
-                            return (a.rival_delta - b.rival_delta) * (1 - 2 * invert);
-                        }
-                    }
-                }
-            }
-        }
-    }
+	if (key === 'song_name') {
+		return function(a, b) {
+			return (a.song_name < b.song_name ? -1 : a.song_name === b.song_name ? 0 : 1) * (1 - 2 * invert);
+		}
+	} else {
+		if (!special_sort) {
+			if (key === 'diff') {
+				return function (a, b) {
+					return ((a[key] - diff4_sort_modifier[a['_diff4']]) - (b[key] - diff4_sort_modifier[b['_diff4']])) * (1 - 2 * invert);
+				}
+			} else {
+				return function (a, b) {
+					return a[key] === undefined ? 1 : b[key] === undefined ? -1 : (a[key] - b[key]) * (1 - 2 * invert);
+				}
+			}
+		} else {
+			if (key === 'score') {
+				return function(a, b) {
+					if (a.score_delta === undefined && b.score_delta === undefined) {
+						return b._id - a._id;
+					} else if (a.score_delta === undefined && b.score_delta !== undefined) {
+						return 1;
+					} else if (a.score_delta !== undefined && b.score_delta === undefined) {
+						return -1;
+					} else {
+						if (a.score_delta === b.score_delta) {
+							return a.score === b.score ? b._id - a._id : (b.score - a.score);
+						} else {
+							return b.score_delta - a.score_delta;
+						}
+					}
+				}
+			} else if (key === 'rival_score') {
+				return function(a, b) {
+					if (a.rival_delta === undefined && b.rival_delta === undefined) {
+						return b._id - a._id;
+					} else if (a.rival_delta === undefined && b.rival_delta !== undefined) {
+						return 1;
+					} else if (a.rival_delta !== undefined && b.rival_delta === undefined) {
+						return -1;
+					} else {
+						if (a.rival_delta === b.rival_delta) {
+							return a.score === b.score ? b._id - a._id : ((b.score - a.score) * (1 - 2 * invert));
+						} else {
+							return (a.rival_delta - b.rival_delta) * (1 - 2 * invert);
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 function get_grade(score) {
-    if (score >= 9900000) {
-        return 9;
-    } else if (score >= 9800000) {
-        return 8;
-    } else if (score >= 9700000) {
-        return 7;
-    } else if (score >= 9500000) {
-        return 6;
-    } else if (score >= 9300000) {
-        return 5;
-    } else if (score >= 9000000) {
-        return 4;
-    } else if (score >= 8700000) {
-        return 3;
-    } else if (score >= 8000000) {
-        return 2;
-    } else if (score >= 7000000) {
-        return 1;
-    } else {
-        return 0;
-    }
+	if (score >= 9900000) {
+		return 9;
+	} else if (score >= 9800000) {
+		return 8;
+	} else if (score >= 9700000) {
+		return 7;
+	} else if (score >= 9500000) {
+		return 6;
+	} else if (score >= 9300000) {
+		return 5;
+	} else if (score >= 9000000) {
+		return 4;
+	} else if (score >= 8700000) {
+		return 3;
+	} else if (score >= 8000000) {
+		return 2;
+	} else if (score >= 7000000) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 function pad_num(n, len) {
-    let num_str = n.toString();
-    let arr = Array(Math.max(0, len - num_str.length)).fill(0);
-    arr.push(n);
-    return arr.join('');
+	let num_str = n.toString();
+	let arr = Array(Math.max(0, len - num_str.length)).fill(0);
+	arr.push(n);
+	return arr.join('');
 }
 
 function new_element(tag, class_list) {
-    if (!class_list) class_list = [];
+	if (!class_list) class_list = [];
 
-    let el = document.createElement(tag);
-    for (let cl of class_list) el.classList.add(cl);
-    return el;
+	let el = document.createElement(tag);
+	for (let cl of class_list) el.classList.add(cl);
+	return el;
 }
