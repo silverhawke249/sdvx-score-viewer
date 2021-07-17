@@ -6,7 +6,7 @@
     padding: 0;
 }
 :root {
-    --font: "Roboto";
+    --font: "Roboto", sans-serif;
 }
 body {
     width: 100%;
