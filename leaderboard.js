@@ -326,7 +326,10 @@ function refresh_table() {
 		let [sId, diffN] = navPath[1].split(',');
 		let scoreData = document.LocalScoreViewer_scoreData[sId][diffN];
 		let diffLv = document.LocalScoreViewer_songData[sId].difficulties[diffN];
-		document.querySelectorAll('.navigation>div[data-path]')[1].innerHTML += `(Lv${diffLv})`;
+		if (!document.querySelectorAll('.navigation>div[data-path]')[1].hasAttribute('data-levelSet')) {
+			document.querySelectorAll('.navigation>div[data-path]')[1].innerHTML += `(Lv${diffLv})`;
+			document.querySelectorAll('.navigation>div[data-path]')[1].setAttribute('data-levelSet', '1');
+		}
 		if (scoreData.length === 0) {
 			let container = new_element('div', ['no-score']);
 			container.innerText = 'No score data found for this chart.';
