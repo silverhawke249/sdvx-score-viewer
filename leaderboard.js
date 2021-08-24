@@ -119,6 +119,7 @@ function process_data() {
 			masterScoreTable[song_id][song_diff]?.push({
 				'sdvxId': sdvx_id,
 				'cardName': card_name,
+				'clearMark': cards[sdvx_id].scores[chart_id].clear_mark,
 				'score': cards[sdvx_id].scores[chart_id].score,
 				'timestamp': cards[sdvx_id].scores[chart_id].timestamp
 			});
@@ -324,6 +325,8 @@ function refresh_table() {
 		table.setAttribute('data-pagination-enabled', '0');
 		let [sId, diffN] = navPath[1].split(',');
 		let scoreData = document.LocalScoreViewer_scoreData[sId][diffN];
+		let diffLv = document.LocalScoreViewer_songData[sId].difficulties[diffN];
+		document.querySelectorAll('.navigation>div[data-path]')[1].innerHTML += `(Lv${diffLv})`;
 		if (scoreData.length === 0) {
 			let container = new_element('div', ['no-score']);
 			container.innerText = 'No score data found for this chart.';
@@ -346,6 +349,7 @@ function refresh_table() {
 			container.innerHTML += `<div>No.</div>`;
 			container.innerHTML += `<div>Card name</div>`;
 			container.innerHTML += `<div>Score</div>`;
+			container.innerHTML += `<div></div>`;
 			container.innerHTML += `<div>Timestamp</div>`;
 			table.appendChild(container);
 			for (let i=0; i<scoreData.length; i++) {
@@ -353,6 +357,7 @@ function refresh_table() {
 				container.innerHTML += `<div>${placement[i]}</div>`;
 				container.innerHTML += `<div>${scoreData[i].cardName}</div>`;
 				container.innerHTML += `<div>${scoreData[i].score.toLocaleString()}</div>`;
+				container.innerHTML += `<div><img src="images/status${scoreData[i].clearMark + 1}.png"></div>`;
 				if (scoreData[i].timestamp === undefined) {
 					container.innerHTML += `<div>---</div>`;
 				} else {
