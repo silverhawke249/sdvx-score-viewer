@@ -17,6 +17,7 @@ body {
     font-family: 'Roboto', sans-serif;
     color: #EAE5FF;
     background: #16171D;
+    overflow-y: scroll;
 }
 
 /* DOCUMENT BODY */
@@ -281,7 +282,10 @@ input[type="checkbox"] {
 /*filter icons*/
 
 .icon input[type="checkbox"] {
-    display:none;
+    display: none;
+}
+input[type="radio"] {
+    display: none;
 }
 
 .icon img{
@@ -312,21 +316,209 @@ input[type="button"] {
     outline: none;
     border-radius: 2px;
     transition: 0.3s opacity;
+    flex-shrink: 0;
 }
 input[type="button"]:hover {
-    opacity: 0.8;
+    background-color: #361f66;
     transition: 0.3s;
 }
 
-label {
+label:not(.sort-button) {
     margin-right: 20px;
-
     line-height: 2;
+}
+input[type="button"], label {
+    cursor: pointer;
 }
 select {
     width: 200px;
     font-family: var(--font);
 }
+
+/* For leaderboards */
+.sort-button {
+    width: 100px;
+    border-radius: 10px;
+    margin: 0 5px;
+    padding: 10px;
+    background-color: #17171c;
+    transition: 0.3s background-color;
+    text-align: center;
+    cursor: pointer;
+}
+.sort-button:hover {
+    background-color: #361f66;
+    transition: none;
+}
+input[type="radio"]:checked + .sort-button {
+    background-color: #4d2c91;
+    transition: 0.3s background-color;
+}
+.entry {
+    height: 50px;
+    padding: 5px 13px;
+    margin-bottom: 5px;
+    border-radius: 7px;
+    background-color: #17171c;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    transition: 0.3s background-color;
+    cursor: pointer;
+}
+.entry:hover {
+    background-color: #361f66;
+    transition: none;
+}
+.entry:last-child {
+    margin-bottom: 0;
+}
+.entry-container {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+.entry>img {
+    position: absolute;
+    top: 50%;
+    right: 13px;
+    translate: 0 -50%;
+}
+.song-title {
+    font-size: 15pt;
+    transform-origin: left;
+}
+.song-artist {
+    font-size: 9pt;
+    transform-origin: left;
+}
+.category-name {
+    font-size: 24pt;
+}
+.diff-container {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+.score-entry.header {
+    height: unset;
+    background-color: unset;
+}
+.score-entry.header:hover {
+    background-color: unset;
+}
+.score-entry {
+    height: 50px;
+    padding: 5px 13px;
+    margin-bottom: 5px;
+    border-radius: 7px;
+    background-color: #17171c;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: 0.3s background-color;
+}
+.score-entry:hover {
+    background-color: #361f66;
+    transition: none;
+}
+.score-entry>div {
+    font-size: 18pt;
+    text-align: center;
+}
+.score-entry>div:nth-child(1) {
+    width: 50px;
+}
+.score-entry>div:nth-child(2) {
+    width: 200px;
+}
+.score-entry>div:nth-child(3) {
+    width: 200px;
+}
+.score-entry>div:nth-child(4) {
+    width: 150px;
+}
+.score-entry:not(.header)>div:nth-child(4) {
+    width: 150px;
+    font-size: 12pt;
+}
+.no-score {
+    padding: 15px 0;
+    text-align: center;
+}
+#navigator {
+    display: flex;
+    align-items: center;
+}
+.navigation {
+    display: flex;
+    align-items: center;
+    margin-left: 20px;
+    transform-origin: left;
+}
+.navigation > div:not(:last-child):after {
+    content: "»";
+    margin: 0 10px;
+}
+.navigation > div, .entry > div {
+    transform-origin: left;
+    white-space: nowrap;
+}
+.navigation > div {
+    display: flex;
+    cursor: pointer;
+    transition: 0.3s opacity;
+}
+.navigation > div:hover {
+    opacity: 0.5;
+}
+.navigation > div > img:not(:first-child) {
+    margin-left: 5px;
+}
+.navigation img {
+    height: 22px;
+}
+.pagination {
+    display: flex;
+    justify-content: space-between;
+}
+.pagination-button {
+    width: 325px;
+    padding: 5px;
+    border-radius: 2px;
+    text-align: center;
+    background-color: #4d2c91;
+    transition: 0.3s background-color;
+    cursor: pointer;
+}
+.pagination-button:hover {
+    background-color: #361f66;
+    transition: none;
+}
+.pagination-button.disabled, input[type="button"].disabled {
+    background-color: #282828;
+    cursor: unset;
+}
+.pagination-number {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.pagination-number>* {
+    margin: 0 5px;
+}
+input[type="text"] {
+    width: 25px;
+    padding: 5px;
+    background-color: #f1f1f1;
+    border: none;
+    text-align: center;
+}
+
 
 /* MISC STUFF */
 .separator-s {
