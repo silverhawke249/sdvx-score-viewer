@@ -361,7 +361,7 @@ function refresh_table() {
 				else
 					entries = entries.filter(x => (/^[^a-zA-Z]/).test(x[1].song_name));
 				entries = table_sort(entries);
-				document.LocalScoreViewer_searchPool = [];
+				document.LocalScoreViewer_searchPool = entries;
 				document.querySelector('#maxPageNumber').innerText = Math.ceil(entries.length / PER_PAGE_ENTRIES);
 				for (const [song_id, song_data, difn, difLv] of entries.slice(pg * PER_PAGE_ENTRIES, (pg + 1) * PER_PAGE_ENTRIES)) {
 					if (difLv === null) continue;
