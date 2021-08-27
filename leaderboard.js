@@ -75,26 +75,54 @@ function initialize_board() {
 			// Don't navigate if search box is active
 			if (!document.querySelector('.search-overlay').classList.contains('hidden')) return;
 			document.querySelector('#back_button').click();
+		} else if (e.key === 'ArrowLeft') {
+			// Don't navigate if search box is active
+			if (!document.querySelector('.search-overlay').classList.contains('hidden')) return;
+			e.preventDefault();
+			document.querySelector('#backButton').click();
+			document.querySelectorAll('.entry')[document.LocalScoreViewer_mainChoice]?.classList.add('active');
+		} else if (e.key === 'ArrowRight') {
+			// Don't navigate if search box is active
+			if (!document.querySelector('.search-overlay').classList.contains('hidden')) return;
+			e.preventDefault();
+			document.querySelector('#nextButton').click();
+			document.querySelectorAll('.entry')[document.LocalScoreViewer_mainChoice]?.classList.add('active');
 		} else if (e.key === 'ArrowUp') {
 			// Don't navigate if search box is active
 			if (!document.querySelector('.search-overlay').classList.contains('hidden')) return;
+			let entries = document.querySelectorAll('.entry');
+			if (entries.length === 0) return;
 			e.preventDefault();
 			if (document.LocalScoreViewer_mainChoice === undefined)
 				document.LocalScoreViewer_mainChoice = 0;
+			entries[document.LocalScoreViewer_mainChoice]?.classList.remove('active');
 			document.LocalScoreViewer_mainChoice--;
-			document.LocalScoreViewer_mainChoice += document.LocalScoreViewer_mainChoice < 0 ? document.querySelectorAll('.entry').length : 0;
+			document.LocalScoreViewer_mainChoice += document.LocalScoreViewer_mainChoice < 0 ? entries.length : 0;
+			entries[document.LocalScoreViewer_mainChoice].classList.add('active');
+			let indicator = VisibilityInParent(entries[document.LocalScoreViewer_mainChoice], true);
+			if (indicator !== 0)
+				entries[document.LocalScoreViewer_mainChoice].scrollIntoView(indicator === -1);
 		} else if (e.key === 'ArrowDown') {
 			// Don't navigate if search box is active
 			if (!document.querySelector('.search-overlay').classList.contains('hidden')) return;
+			let entries = document.querySelectorAll('.entry');
+			if (entries.length === 0) return;
 			e.preventDefault();
 			if (document.LocalScoreViewer_mainChoice === undefined)
 				document.LocalScoreViewer_mainChoice = -1;
+			entries[document.LocalScoreViewer_mainChoice]?.classList.remove('active');
 			document.LocalScoreViewer_mainChoice++;
-			document.LocalScoreViewer_mainChoice %= document.querySelectorAll('.entry').length;
+			document.LocalScoreViewer_mainChoice %= entries.length;
+			entries[document.LocalScoreViewer_mainChoice].classList.add('active');
+			let indicator = VisibilityInParent(entries[document.LocalScoreViewer_mainChoice], true);
+			if (indicator !== 0)
+				entries[document.LocalScoreViewer_mainChoice].scrollIntoView(indicator === -1);
 		} else if (e.key === 'Enter') {
 			// Don't navigate if search box is active
 			if (!document.querySelector('.search-overlay').classList.contains('hidden')) return;
 			e.preventDefault();
+			document.LocalScoreViewer_mainChoice = undefined;
+			document.querySelector('.entry.active').click();
 		} else return;
 	});
 	document.querySelector('.overlay-capture').addEventListener('click', toggle_search);
@@ -523,7 +551,7 @@ function handle_autocomplete(node) {
 			choice--;
 			choice += choice < 0 ? container.children.length : 0;
 			container.children[choice].classList.add('active');
-			let indicator = isVisibleInParent(container.children[choice]);
+			let indicator = VisibilityInParent(container.children[choice]);
 			if (indicator !== 0)
 				container.children[choice].scrollIntoView(indicator === -1);
 		} else if (e.key === 'ArrowDown') {
@@ -533,7 +561,7 @@ function handle_autocomplete(node) {
 			choice++;
 			choice %= container.children.length;
 			container.children[choice].classList.add('active');
-			let indicator = isVisibleInParent(container.children[choice]);
+			let indicator = VisibilityInParent(container.children[choice]);
 			if (indicator !== 0)
 				container.children[choice].scrollIntoView(indicator === -1);
 		} else if (e.key === 'Enter') {
@@ -597,10 +625,11 @@ function entry_click(e) {
 	refresh_table();
 }
 
-function isVisibleInParent(el) {
+function VisibilityInParent(el, useWindow=false) {
 	let childRect, parentRect;
 	childRect = el.getBoundingClientRect();
-	parentRect = el.parentNode.getBoundingClientRect();
+	if (!useWindow) parentRect = el.parentNode.getBoundingClientRect()
+	else parentRect = {top: 0, bottom: window.innerHeight};
 	// Who knows why is it off by one
 	if ((childRect.top - 1) < parentRect.top) return -1
 	else if ((childRect.bottom + 1) > parentRect.bottom) return 1
