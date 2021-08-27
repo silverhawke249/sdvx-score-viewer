@@ -381,12 +381,12 @@ input[type="radio"]:checked + .sort-button {
     transition: 0.3s background-color;
     cursor: pointer;
 }
-.entry.active {
-    background-color: dodgerBlue;
-    transition: none;
-}
 .entry:hover {
     background-color: #361f66;
+    transition: none;
+}
+.entry.active {
+    background-color: dodgerBlue;
     transition: none;
 }
 .entry:last-child {
