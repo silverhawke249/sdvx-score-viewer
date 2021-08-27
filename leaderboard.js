@@ -101,7 +101,11 @@ function initialize_board() {
 			entries[document.LocalScoreViewer_mainChoice].classList.add('active');
 			let indicator = VisibilityInParent(entries[document.LocalScoreViewer_mainChoice], true);
 			if (indicator !== 0)
-				entries[document.LocalScoreViewer_mainChoice].scrollIntoView(indicator === -1);
+				entries[document.LocalScoreViewer_mainChoice].scrollIntoView({
+					behavior: 'smooth',
+					block: indicator === -1 ? 'start' : 'end',
+					inline: 'nearest'
+				});
 		} else if (e.key === 'ArrowDown') {
 			// Don't navigate if search box is active
 			if (!document.querySelector('.search-overlay').classList.contains('hidden')) return;
@@ -116,7 +120,11 @@ function initialize_board() {
 			entries[document.LocalScoreViewer_mainChoice].classList.add('active');
 			let indicator = VisibilityInParent(entries[document.LocalScoreViewer_mainChoice], true);
 			if (indicator !== 0)
-				entries[document.LocalScoreViewer_mainChoice].scrollIntoView(indicator === -1);
+				entries[document.LocalScoreViewer_mainChoice].scrollIntoView({
+					behavior: 'smooth',
+					block: indicator === -1 ? 'start' : 'end',
+					inline: 'nearest'
+				});
 		} else if (e.key === 'Enter') {
 			// Don't navigate if search box is active
 			if (!document.querySelector('.search-overlay').classList.contains('hidden')) return;
@@ -553,7 +561,11 @@ function handle_autocomplete(node) {
 			container.children[choice].classList.add('active');
 			let indicator = VisibilityInParent(container.children[choice]);
 			if (indicator !== 0)
-				container.children[choice].scrollIntoView(indicator === -1);
+				container.children[choice].scrollIntoView({
+					behavior: 'smooth',
+					block: indicator === -1 ? 'start' : 'end',
+					inline: 'nearest'
+				});
 		} else if (e.key === 'ArrowDown') {
 			e.preventDefault();
 			container.children[choice]?.classList.remove('active');
@@ -563,7 +575,11 @@ function handle_autocomplete(node) {
 			container.children[choice].classList.add('active');
 			let indicator = VisibilityInParent(container.children[choice]);
 			if (indicator !== 0)
-				container.children[choice].scrollIntoView(indicator === -1);
+				container.children[choice].scrollIntoView({
+					behavior: 'smooth',
+					block: indicator === -1 ? 'start' : 'end',
+					inline: 'nearest'
+				});
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
 			if (choice !== undefined)
