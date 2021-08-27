@@ -14,11 +14,17 @@
     <title>SDVX Local Leaderboards</title>
 </head>
 
-<body onload="initialize_board()" class="no-select">
+<body onload="initialize_board()" class="no-select default-scroll">
     <div class="topheader" id="topheader">
         <div class="title">SDVX Local Leaderboards</div>
         <div class="title"><a href="index.html">to Score Viewer &rarr;</a></div>
     </div>
+	<div class="search-overlay hidden">
+		<div class="overlay-capture"></div>
+		<div class="search-box">
+			<input type="text" id="songSearch">
+		</div>
+	</div>
     <div class="container">
         <div class="section">
             <div class="section-header">

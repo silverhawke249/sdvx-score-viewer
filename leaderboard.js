@@ -58,8 +58,50 @@ function initialize_board() {
 			this.parentNode.removeChild(this.parentNode.lastElementChild);
 		refresh_table();
 	});
+	// Event listener for leaderboards table
+	document.querySelector('#leaderboard_table').addEventListener('click', entry_click);
+	// Event listener for search and main navigation
+	document.addEventListener('keydown', function(e) {
+		if (e.key === ' ') {
+			// Don't toggle if search box is focused, or nothing to search for
+			if (document.activeElement === document.querySelector('#songSearch')) return;
+			if (document.LocalScoreViewer_searchPool.length === 0) return;
+			toggle_search(e);
+		} else if (e.key === 'Escape') {
+			// Don't toggle if search box is hidden
+			if (document.querySelector('.search-overlay').classList.contains('hidden')) return;
+			toggle_search(e);
+		} else if (e.key === 'Backspace') {
+			// Don't navigate if search box is active
+			if (!document.querySelector('.search-overlay').classList.contains('hidden')) return;
+			document.querySelector('#back_button').click();
+		} else if (e.key === 'ArrowUp') {
+			// Don't navigate if search box is active
+			if (!document.querySelector('.search-overlay').classList.contains('hidden')) return;
+			e.preventDefault();
+			if (document.LocalScoreViewer_mainChoice === undefined)
+				document.LocalScoreViewer_mainChoice = 0;
+			document.LocalScoreViewer_mainChoice--;
+			document.LocalScoreViewer_mainChoice += document.LocalScoreViewer_mainChoice < 0 ? document.querySelectorAll('.entry').length : 0;
+		} else if (e.key === 'ArrowDown') {
+			// Don't navigate if search box is active
+			if (!document.querySelector('.search-overlay').classList.contains('hidden')) return;
+			e.preventDefault();
+			if (document.LocalScoreViewer_mainChoice === undefined)
+				document.LocalScoreViewer_mainChoice = -1;
+			document.LocalScoreViewer_mainChoice++;
+			document.LocalScoreViewer_mainChoice %= document.querySelectorAll('.entry').length;
+		} else if (e.key === 'Enter') {
+			// Don't navigate if search box is active
+			if (!document.querySelector('.search-overlay').classList.contains('hidden')) return;
+			e.preventDefault();
+		} else return;
+	});
+	document.querySelector('.overlay-capture').addEventListener('click', toggle_search);
+	handle_autocomplete(document.querySelector('#songSearch'));
 
 	document.LocalScoreViewer_searchPool = [];
+	document.LocalScoreViewer_mainChoice = undefined;
     load_data_list();
 
     banners();  // random backgrounds
@@ -161,7 +203,6 @@ function refresh_table() {
 				let artistDiv = new_element('div', ['song-artist']);
 				node.setAttribute('data-display', song_data.song_name);
 				node.setAttribute('data-value', song_id);
-				node.addEventListener('click', entry_click);
 				titleDiv.innerText = song_data.song_name;
 				artistDiv.innerText = song_data.song_artist;
 				entryWrapper.appendChild(titleDiv);
@@ -185,7 +226,6 @@ function refresh_table() {
 				let textDiv = new_element('div', ['category-name']);
 				node.setAttribute('data-display', text);
 				node.setAttribute('data-value', idx);
-				node.addEventListener('click', entry_click);
 				textDiv.innerText = text;
 				node.appendChild(textDiv);
 				table.appendChild(node);
@@ -208,8 +248,7 @@ function refresh_table() {
 				node.setAttribute('data-display', '');
 				node.setAttribute('data-value', `${pathValue},${difn}`);
 				node.setAttribute('data-special', '0');
-				node.setAttribute('data-special-value', difn === '4' ? song_data.diff4_name : diffName[difn]);
-				node.addEventListener('click', entry_click);
+				node.setAttribute('data-special-value', difn === 4 ? song_data.diff4_name : diffName[difn]);
 				if (difn === 4) difImg.src = `images/diff${song_data.diff4_name}.png`
 				else difImg.src = `images/diff${diffName[difn]}.png`;
 				titleDiv.innerText = song_data.song_name;
@@ -230,10 +269,18 @@ function refresh_table() {
 		} else {
 			table.setAttribute('data-pagination-enabled', '1');
 			if (selected_category === 1) {
-				let entries = [...Object.entries(document.LocalScoreViewer_songData)];
+				let entries = [].concat(...Object.entries(document.LocalScoreViewer_songData).map(function(a) {
+					let out = [];
+					for (const [difn, difLv] of a[1].difficulties.entries()) {
+						if (difLv === null) continue;
+						out.push([a[0], a[1], difn, difLv]);
+					}
+					out.reverse();
+					return out;
+				}));
 				let pathValue = 20 - parseInt(navPath[0], 10);
 				let pg = parseInt(table.getAttribute('data-page'), 10) - 1;
-				entries = entries.filter(x => x[1].difficulties.some(y => y === pathValue));
+				entries = entries.filter(x => x[3] === pathValue);
 				entries = table_sort(entries);
 				document.LocalScoreViewer_searchPool = entries;
 				document.querySelector('#maxPageNumber').innerText = Math.ceil(entries.length / PER_PAGE_ENTRIES);
@@ -249,7 +296,6 @@ function refresh_table() {
 						node.setAttribute('data-value', `${song_id},${difn}`);
 						node.setAttribute('data-special', '0');
 						node.setAttribute('data-special-value', difn === 4 ? song_data.diff4_name : diffName[difn]);
-						node.addEventListener('click', entry_click);
 						if (difn === 4) difImg.src = `images/diff${song_data.diff4_name}.png`
 						else difImg.src = `images/diff${diffName[difn]}.png`;
 						titleDiv.innerText = song_data.song_name;
@@ -287,7 +333,7 @@ function refresh_table() {
 				else
 					entries = entries.filter(x => (/^[^a-zA-Z]/).test(x[1].song_name));
 				entries = table_sort(entries);
-				document.LocalScoreViewer_searchPool = entries;
+				document.LocalScoreViewer_searchPool = [];
 				document.querySelector('#maxPageNumber').innerText = Math.ceil(entries.length / PER_PAGE_ENTRIES);
 				for (const [song_id, song_data, difn, difLv] of entries.slice(pg * PER_PAGE_ENTRIES, (pg + 1) * PER_PAGE_ENTRIES)) {
 					if (difLv === null) continue;
@@ -300,7 +346,6 @@ function refresh_table() {
 					node.setAttribute('data-value', `${song_id},${difn}`);
 					node.setAttribute('data-special', '0');
 					node.setAttribute('data-special-value', difn === 4 ? song_data.diff4_name : diffName[difn]);
-					node.addEventListener('click', entry_click);
 					if (difn === 4) difImg.src = `images/diff${song_data.diff4_name}.png`
 					else difImg.src = `images/diff${diffName[difn]}.png`;
 					titleDiv.innerText = song_data.song_name;
@@ -415,16 +460,134 @@ function table_sort(list) {
 	}
 }
 
-function entry_click() {
+function toggle_search(e) {
+	e?.preventDefault();
+	document.querySelector('.topheader').classList.toggle('blur');
+	document.querySelector('.container').classList.toggle('blur');
+	document.querySelector('.search-overlay').classList.toggle('hidden');
+	if (document.querySelector('.search-overlay').classList.contains('hidden')) {
+		document.querySelector('#songSearch').blur();
+		document.querySelector('#songSearch').value = '';
+		document.querySelector('.search-results').innerHTML = '';
+	} else document.querySelector('#songSearch').focus();
+}
+
+function handle_autocomplete(node) {
+	let container = new_element('div', ['hidden', 'search-results']);
+	let candidates, choice;
+	node.parentNode.appendChild(container);
+	node.addEventListener('input', function() {
+		container.innerHTML = '';
+		container.classList.add('hidden');
+		let val = this.value;
+		if (val.length === 0 || document.LocalScoreViewer_searchPool.length === 0) return;
+		choice = undefined;
+		container.classList.remove('hidden');
+		candidates = document.LocalScoreViewer_searchPool.filter(function(x) {
+			let sn = x[1].song_name.toLowerCase();
+			let sa = x[1].song_artist.toLowerCase();
+			return sn.includes(val) || sa.includes(val);
+		});
+		let containerWidth = container.clientWidth - 10;
+		if (document.querySelectorAll('.navigation>div[data-path]').length !== 0) containerWidth -= 55;
+		for (const entry of candidates) {
+			let entryNode = new_element('div', ['search-result']);
+			entryNode.innerHTML = `<div>${entry[1].song_name}</div><div>${entry[1].song_artist}</div>`;
+			let snX = getTextWidth(entry[1].song_name);
+			let saX = getTextWidth(entry[1].song_artist, 'normal 7pt Roboto');
+			if (document.querySelectorAll('.navigation>div[data-path]').length !== 0) {
+				let imgFn;
+				switch (entry[2]) {
+					case 0: imgFn = 'NOV'; break;
+					case 1: imgFn = 'ADV'; break;
+					case 2: imgFn = 'EXH'; break;
+					case 3: imgFn = 'MXM'; break;
+					case 4: imgFn = entry[1].diff4_name; break;
+				}
+				entryNode.innerHTML += `<img src="images/diff${imgFn}.png">`;
+			}
+			if (snX > containerWidth)
+				entryNode.children[0].style.transform = `scaleX(${containerWidth / snX})`;
+			if (saX > containerWidth)
+				entryNode.children[1].style.transform = `scaleX(${containerWidth / saX})`;
+			entryNode.addEventListener('click', clickHandler);
+			container.appendChild(entryNode);
+		}
+	});
+	// node.addEventListener('focus', function() { this.dispatchEvent(new Event('input')); })
+	node.addEventListener('keydown', function(e) {
+		if (e.key === 'ArrowUp') {
+			e.preventDefault();
+			container.children[choice]?.classList.remove('active');
+			if (choice === undefined) choice = 0;
+			choice--;
+			choice += choice < 0 ? container.children.length : 0;
+			container.children[choice].classList.add('active');
+			let indicator = isVisibleInParent(container.children[choice]);
+			if (indicator !== 0)
+				container.children[choice].scrollIntoView(indicator === -1);
+		} else if (e.key === 'ArrowDown') {
+			e.preventDefault();
+			container.children[choice]?.classList.remove('active');
+			if (choice === undefined) choice = -1;
+			choice++;
+			choice %= container.children.length;
+			container.children[choice].classList.add('active');
+			let indicator = isVisibleInParent(container.children[choice]);
+			if (indicator !== 0)
+				container.children[choice].scrollIntoView(indicator === -1);
+		} else if (e.key === 'Enter') {
+			e.preventDefault();
+			if (choice !== undefined)
+				container.children[choice].dispatchEvent(new Event('click'))
+			else if (candidates.length === 1)
+				container.firstChild.dispatchEvent(new Event('click'));
+		} else return;
+	});
+	function clickHandler(e) {
+		let anchor = this;
+		candidate = candidates[[...anchor.parentNode.children].indexOf(anchor)];
+		if (!e.target || !anchor) return;
+		let navEntry = new_element('div');
+		if (document.querySelectorAll('.navigation>div[data-path]').length === 0) {
+			navEntry.innerText = candidate[1].song_name;
+			navEntry.setAttribute('data-path', candidate[0]);
+		} else {  // length === 1
+			navEntry.innerHTML = `<div>${candidate[1].song_name}</div>`;
+			let imgFn;
+			switch (candidate[2]) {
+				case 0: imgFn = 'NOV'; break;
+				case 1: imgFn = 'ADV'; break;
+				case 2: imgFn = 'EXH'; break;
+				case 3: imgFn = 'MXM'; break;
+				case 4: imgFn = candidate[1].diff4_name; break;
+			}
+			navEntry.innerHTML += `<img src="images/diff${imgFn}.png">`;
+			navEntry.setAttribute('data-path', `${candidate[0]},${candidate[2]}`);
+		}
+		navEntry.addEventListener('click', function() {
+			while (this.parentNode.lastElementChild !== this)
+				this.parentNode.removeChild(this.parentNode.lastElementChild);
+			refresh_table();
+		});
+		document.querySelector('.navigation').appendChild(navEntry);
+		toggle_search();
+		refresh_table();
+	};
+}
+
+function entry_click(e) {
+	let anchor = e?.target.closest('div.entry');
+	if (!e.target || !anchor) return;
 	let navEntry = new_element('div');
-	if (!this.hasAttribute('data-special'))	{
-		navEntry.innerText = this.getAttribute('data-display');
+	if (!anchor.hasAttribute('data-special'))	{
+		navEntry.innerText = anchor.getAttribute('data-display');
 	} else {
-		if (this.getAttribute('data-display') !== '')
-			navEntry.innerHTML = `<div>${this.getAttribute('data-display')}</div>`;
-		navEntry.innerHTML += `<img src="images/diff${this.getAttribute('data-special-value')}.png">`;
+		if (anchor.getAttribute('data-display') !== '')
+			navEntry.innerHTML = `<div>${anchor.getAttribute('data-display')}</div>`;
+		navEntry.innerHTML += `<img src="images/diff${anchor.getAttribute('data-special-value')}.png">`;
 	}
-	navEntry.setAttribute('data-path', this.getAttribute('data-value'));
+	navEntry.setAttribute('data-path', anchor.getAttribute('data-value'));
 	navEntry.addEventListener('click', function() {
 		while (this.parentNode.lastElementChild !== this)
 			this.parentNode.removeChild(this.parentNode.lastElementChild);
@@ -432,4 +595,23 @@ function entry_click() {
 	});
 	document.querySelector('.navigation').appendChild(navEntry);
 	refresh_table();
+}
+
+function isVisibleInParent(el) {
+	let childRect, parentRect;
+	childRect = el.getBoundingClientRect();
+	parentRect = el.parentNode.getBoundingClientRect();
+	// Who knows why is it off by one
+	if ((childRect.top - 1) < parentRect.top) return -1
+	else if ((childRect.bottom + 1) > parentRect.bottom) return 1
+	else return 0;
+}
+
+function getTextWidth(text, font='normal 16px Roboto') {
+	// re-use canvas object for better performance
+	const canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
+	const context = canvas.getContext("2d");
+	context.font = font;
+	const metrics = context.measureText(text);
+	return metrics.width;
 }
