@@ -8,7 +8,7 @@
 
 const filter_fields = {
 	diff: [...Array(5).keys()],
-	level: [...Array(21).keys()],
+	level: [...Array(20).keys()].map(e => e+1),
 	status: [...Array(6).keys()],
 	grade: [...Array(10).keys()]
 };
@@ -55,6 +55,9 @@ const values_to_node = {
 		el.src = `images/diff${diff}.png`;
 		el.alt = diff;
 		return el;
+	},
+	level: function(e) {
+		return document.createTextNode(e.level + 1);
 	},
 	status: function(e) {
 		let el = document.createElement('img');
@@ -154,6 +157,23 @@ function initialize() {
 	banners(); // random backgrounds
 }
 
+function save_filter() {
+	// Get checked boxes
+	let filter_checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+	let filter_value = 0;
+	let val = 1;
+	for (let checkbox of filter_checkboxes) {
+		if (checkbox.checked) filter_value += val;
+		val *= 2;
+	}
+
+	// Set cookie
+	let key_name = 'enabledFilters';
+	let expiry_time = new Date();
+	expiry_time.setTime(expiry_time.getTime() + 365 * 24 * 60 * 60 * 1000);
+	document.cookie = `${key_name}=${filter_value}; expires=${expiry_time.toUTCString()}; path=/`;
+}
+
 function load_filter() {
 	// Get cookie
 	let cookie_array = document.cookie.split(';');
@@ -167,13 +187,26 @@ function load_filter() {
 		}
 	}
 
-	// Load filter value to cookie
+	// Load filter value from cookie
 	let filter_checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
 	if (enabled_filter !== null) {
 		for (let checkbox of filter_checkboxes) {
 			checkbox.checked = enabled_filter & 1;
 			enabled_filter = Math.floor(enabled_filter / 2);
 			if (enabled_filter === 0) break;
+		}
+	}
+
+	// Make sure buttons are labeled properly
+	for (let button of document.querySelectorAll('input[type="button"]')) {
+		let cat = button.getAttribute('data-filter');
+		let checkboxes = Array.from(document.querySelectorAll(`input[type="checkbox"][id^="${cat}"]`));
+		if (checkboxes.some(e => e.checked)) {
+			button.setAttribute('data-apply', '');
+			button.value = 'Clear all';
+		} else {
+			button.setAttribute('data-apply', '1');
+			button.value = 'Apply all';
 		}
 	}
 }
@@ -327,7 +360,7 @@ function load_score_data() {
 		song_diff = parseInt(song_diff);
 
 		let song_data = document.LocalScoreViewer_songData[song_id];
-		let song_level = song_data['difficulties'][song_diff];
+		let song_level = song_data['difficulties'][song_diff] - 1;
 
 		let user_status = user_scores[key]['clear_mark'] + 1;
 		let user_score = user_scores[key]['score'];
@@ -826,15 +859,16 @@ function change_filter() {
 		this.value = 'Apply all';
 	}
 
+	save_filter();
+
 	refresh_table();
 }
 
 function checkbox_listener() {
 	let type = this.id.match(/[a-zA-Z]*/)[0];
 	let button = document.querySelector(`input[type="button"][data-filter="${type}"]`);
-	let ticked_boxes = Array.from(document.querySelectorAll(`input[type="checkbox"][id^=${type}]`));
-	ticked_boxes = ticked_boxes.filter(e => e.checked);
-	if (ticked_boxes.length) {
+	let checkboxes = Array.from(document.querySelectorAll(`input[type="checkbox"][id^=${type}]`));
+	if (checkboxes.some(e => e.checked)) {
 		button.setAttribute('data-apply', '');
 		button.value = 'Clear all';
 	} else {
@@ -842,20 +876,7 @@ function checkbox_listener() {
 		button.value = 'Apply all';
 	}
 
-	// Get checked boxes
-	let filter_checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]'));
-	let filter_value = 0;
-	let val = 1;
-	for (let checkbox of filter_checkboxes) {
-		if (checkbox.checked) filter_value += val;
-		val *= 2;
-	}
-
-	// Set cookie
-	let key_name = 'enabledFilters';
-	let expiry_time = new Date();
-	expiry_time.setTime(expiry_time.getTime() + 365 * 24 * 60 * 60 * 1000);
-	document.cookie = `${key_name}=${filter_value}; expires=${expiry_time.toUTCString()}; path=/`;
+	save_filter();
 
 	refresh_table();
 }
