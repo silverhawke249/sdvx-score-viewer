@@ -212,7 +212,7 @@ function load_filter() {
 }
 
 function load_card_info() {
-	fetch('song_db.json')
+	fetch('../sdvx-db/db.json')
 		.then(response => response.json())
 		.then(json => document.LocalScoreViewer_songData = json)
 		.then(compute_db_totals);
@@ -370,8 +370,8 @@ function load_score_data() {
 		let score_delta = rival_score ? user_score - rival_score : undefined;
 
 		let table_entry = {
-			'song_name': song_data['song_name'].replace('(EXIT TUNES)', ''),
-			'song_artist': song_data['song_artist'],
+			'song_name': song_data.song_name.replace('(EXIT TUNES)', ''),
+			'song_artist': song_data.song_artist,
 			'diff': song_diff,
 			'level': song_level,
 			'status': user_status,
@@ -381,7 +381,7 @@ function load_score_data() {
 			'rival_score': rival_score,
 			'rival_delta': score_delta,
 			'_id': song_id,
-			'_diff4': song_data['diff4_name']
+			'_diff4': const_names.diff4[song_data.inf_ver - 2]
 		};
 
 		if (table_entry.prev_data !== undefined) {
@@ -593,7 +593,7 @@ function compute_volforce() {
 		song_diff = parseInt(song_diff);
 
 		let song_data = song_db[song_id];
-		let song_level = song_data['difficulties'][song_diff];
+		let song_level = song_data.difficulties[song_diff];
 		let score_grade = get_grade(score);
 
 		let volforce = song_level * 2 * score / 1e7 * vf_multiplier.status[status] * vf_multiplier.grade[score_grade];
@@ -632,7 +632,7 @@ function compute_volforce() {
 
 			let dif_img = document.createElement('img');
 			if (entry[1] === 4) {
-				dif_img.src = `images/diff${song_db[entry[0]].diff4_name}.png`;
+				dif_img.src = `images/diff${const_names.diff4[song_db[entry[0]].inf_ver - 2]}.png`;
 			} else {
 				dif_img.src = `images/diff${const_names.diff[entry[1]]}.png`;
 			}

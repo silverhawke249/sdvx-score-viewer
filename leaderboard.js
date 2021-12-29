@@ -284,8 +284,8 @@ function refresh_table() {
 				node.setAttribute('data-display', '');
 				node.setAttribute('data-value', `${pathValue},${difn}`);
 				node.setAttribute('data-special', '0');
-				node.setAttribute('data-special-value', difn === 4 ? song_data.diff4_name : diffName[difn]);
-				if (difn === 4) difImg.src = `images/diff${song_data.diff4_name}.png`
+				node.setAttribute('data-special-value', difn === 4 ? const_names.diff4[song_data.inf_ver - 2] : diffName[difn]);
+				if (difn === 4) difImg.src = `images/diff${const_names.diff4[song_data.inf_ver - 2]}.png`
 				else difImg.src = `images/diff${diffName[difn]}.png`;
 				titleDiv.innerText = song_data.song_name;
 				artistDiv.innerText = song_data.song_artist;
@@ -331,8 +331,8 @@ function refresh_table() {
 						node.setAttribute('data-display', song_data.song_name);
 						node.setAttribute('data-value', `${song_id},${difn}`);
 						node.setAttribute('data-special', '0');
-						node.setAttribute('data-special-value', difn === 4 ? song_data.diff4_name : diffName[difn]);
-						if (difn === 4) difImg.src = `images/diff${song_data.diff4_name}.png`
+						node.setAttribute('data-special-value', difn === 4 ? const_names.diff4[song_data.inf_ver - 2] : diffName[difn]);
+						if (difn === 4) difImg.src = `images/diff${const_names.diff4[song_data.inf_ver - 2]}.png`
 						else difImg.src = `images/diff${diffName[difn]}.png`;
 						titleDiv.innerText = song_data.song_name;
 						artistDiv.innerText = song_data.song_artist;
@@ -381,8 +381,8 @@ function refresh_table() {
 					node.setAttribute('data-display', song_data.song_name);
 					node.setAttribute('data-value', `${song_id},${difn}`);
 					node.setAttribute('data-special', '0');
-					node.setAttribute('data-special-value', difn === 4 ? song_data.diff4_name : diffName[difn]);
-					if (difn === 4) difImg.src = `images/diff${song_data.diff4_name}.png`
+					node.setAttribute('data-special-value', difn === 4 ? const_names.diff4[song_data.inf_ver - 2] : diffName[difn]);
+					if (difn === 4) difImg.src = `images/diff${const_names.diff4[song_data.inf_ver - 2]}.png`
 					else difImg.src = `images/diff${diffName[difn]}.png`;
 					titleDiv.innerText = song_data.song_name;
 					artistDiv.innerText = song_data.song_artist;
@@ -538,7 +538,7 @@ function handle_autocomplete(node) {
 					case 1: imgFn = 'ADV'; break;
 					case 2: imgFn = 'EXH'; break;
 					case 3: imgFn = 'MXM'; break;
-					case 4: imgFn = entry[1].diff4_name; break;
+					case 4: imgFn = const_names.diff4[entry[1].inf_ver - 2]; break;
 				}
 				entryNode.innerHTML += `<img src="images/diff${imgFn}.png">`;
 			}
@@ -604,7 +604,7 @@ function handle_autocomplete(node) {
 				case 1: imgFn = 'ADV'; break;
 				case 2: imgFn = 'EXH'; break;
 				case 3: imgFn = 'MXM'; break;
-				case 4: imgFn = candidate[1].diff4_name; break;
+				case 4: imgFn = const_names.diff4[candidate[1].inf_ver - 2]; break;
 			}
 			navEntry.innerHTML += `<img src="images/diff${imgFn}.png">`;
 			navEntry.setAttribute('data-path', `${candidate[0]},${candidate[2]}`);
