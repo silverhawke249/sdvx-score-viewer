@@ -29,6 +29,7 @@ const diff4_sort_modifier = {
 	HVN: .3,
 	VVD: .4
 };
+const db_path = '../sdvx-db/db.json';
 
 // Table of functions that convert a table entry into a HTML node
 const table_columns = ['song_name', 'diff', 'level', 'status', 'grade', 'score', 'rival_score'];
@@ -212,7 +213,7 @@ function load_filter() {
 }
 
 function load_card_info() {
-	fetch('../sdvx-db/db.json')
+	fetch(db_path)
 		.then(response => response.json())
 		.then(json => document.LocalScoreViewer_songData = json)
 		.then(compute_db_totals);

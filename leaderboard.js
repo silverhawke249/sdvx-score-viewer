@@ -144,7 +144,7 @@ function initialize_board() {
 }
 
 function load_data_list() {
-    fetch('song_db.json')
+    fetch(db_path)
         .then(response => response.json())
         .then(json => document.LocalScoreViewer_songData = json)
 		.then(process_data);
