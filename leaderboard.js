@@ -140,6 +140,51 @@ function initialize_board() {
 	document.LocalScoreViewer_mainChoice = undefined;
     load_data_list();
 
+    // New navigation
+    if (window.history.state === null) {
+        // Set up history
+        window.history.replaceState(
+            {isBasePage: true},
+            ''
+        );
+        setTimeout(function() {
+            window.history.pushState(
+                {isBasePage: false},
+                ''
+            );
+        }, 100);
+    } else if (window.history.state.isBasePage) {
+        // If navigated to base page, force to next page
+        window.history.go(1);
+    }
+
+    setTimeout(function() {
+        window.addEventListener('popstate', function(e) {
+            if (e.state === null) {
+                // Undo navigation, remove forward entry
+                window.history.go(-1);
+                window.history.replaceState(
+                    {isBasePage: false},
+                    ''
+                );
+            } else if (e.state.isBasePage) {
+                let breadcrumb = [...document.querySelectorAll('.navigation>div[data-path]')];
+                if (breadcrumb.length > 0) {
+                    // One step back from breadcrumb
+                    document.querySelector('#back_button').click();
+                    window.history.go(1);
+                } else {
+                    // If on breadcrumb root, actually go back in history
+                    window.history.replaceState(
+                        {isBasePage: true},
+                        ''
+                    );
+                    window.history.go(-1);
+                }
+            }
+        });
+    }, 200);
+
     banners();  // random backgrounds
 }
 
