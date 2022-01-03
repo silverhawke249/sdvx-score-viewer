@@ -549,6 +549,33 @@ input[type="radio"]:checked + .sort-button {
     width: 100%;
     height: 100%;
 }
+.search-button {
+    position: fixed;
+    right: 0;
+    top: 30px;
+    padding: 30px 20px;
+    border: solid 3px#4d2c91;
+    border-right: 0;
+    border-radius: 10px 0 0 10px;
+    min-width: 30px;
+    z-index: 0;
+    background-color: #101014;
+    box-shadow: 0 0 10px rgba(0, 0, 0, .6);
+    cursor: pointer;
+}
+.search-button:hover>img:not(.hover) {
+    visibility: hidden;
+}
+.search-button>img.hover {
+    position: absolute;
+    left: 20px;
+    opacity: 0;
+    transition: 0.3s opacity;
+}
+.search-button:hover>img.hover {
+    opacity: 1;
+    transition: none;
+}
 .search-box {
     padding: 10px;
     border-radius: 7px;
@@ -633,6 +660,9 @@ input[type="text"] {
 
 img {
     height: 30px;
+}
+svg {
+    position: absolute;
 }
 
 #section_stats {

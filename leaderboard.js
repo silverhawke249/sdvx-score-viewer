@@ -128,11 +128,13 @@ function initialize_board() {
 		} else if (e.key === 'Enter') {
 			// Don't navigate if search box is active
 			if (!document.querySelector('.search-overlay').classList.contains('hidden')) return;
-			e.preventDefault();
 			document.LocalScoreViewer_mainChoice = undefined;
-			document.querySelector('.entry.active').click();
+			// e.preventDefault();
+			// document.querySelector('.entry.active').click();
 		} else return;
 	});
+    // Event listener for search button and blur overlay
+	document.querySelector('.search-button').addEventListener('click', toggle_search);
 	document.querySelector('.overlay-capture').addEventListener('click', toggle_search);
 	handle_autocomplete(document.querySelector('#songSearch'));
 
@@ -545,6 +547,7 @@ function toggle_search(e) {
 	e?.preventDefault();
 	document.querySelector('.topheader').classList.toggle('blur');
 	document.querySelector('.container').classList.toggle('blur');
+	document.querySelector('.search-button').classList.toggle('blur');
 	document.querySelector('.search-overlay').classList.toggle('hidden');
 	if (document.querySelector('.search-overlay').classList.contains('hidden')) {
 		document.querySelector('#songSearch').blur();
@@ -566,8 +569,9 @@ function handle_autocomplete(node) {
 		container.classList.remove('hidden');
 		candidates = document.LocalScoreViewer_searchPool.filter(function(x) {
 			let sn = x[1].song_name.toLowerCase();
+			let sn_aliases = x[1].song_name_alt.map(x => x.toLowerCase());
 			let sa = x[1].song_artist.toLowerCase();
-			return sn.includes(val) || sa.includes(val);
+			return sn.includes(val) || sa.includes(val) || sn_aliases.some(x => x.includes(val));
 		});
 		let containerWidth = container.clientWidth - 10;
 		if (document.querySelectorAll('.navigation>div[data-path]').length !== 0) containerWidth -= 55;
@@ -628,8 +632,8 @@ function handle_autocomplete(node) {
 		} else if (e.key === 'Enter') {
 			e.preventDefault();
 			if (choice !== undefined)
-				container.children[choice].dispatchEvent(new Event('click'))
-			else if (candidates.length === 1)
+				container.children[choice]?.dispatchEvent(new Event('click'))
+			else if (candidates?.length === 1)
 				container.firstChild.dispatchEvent(new Event('click'));
 		} else return;
 	});
