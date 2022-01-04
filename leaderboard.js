@@ -1,18 +1,18 @@
 function initialize_board() {
-    // Add event listeners
+	// Add event listeners
 	// Event listener for grouping
-    for (let e of document.querySelectorAll('input[name="grouping"]')) {
-        e.addEventListener('change', function() {
+	for (let e of document.querySelectorAll('input[name="grouping"]')) {
+		e.addEventListener('change', function() {
 			document.querySelector('#leaderboard_table').setAttribute('data-page', 1);
 			let navigator = document.querySelector('.navigation');
 			while (navigator.children.length > 1) navigator.removeChild(navigator.lastChild);
 			refresh_table();
 		});
-    }
+	}
 	// Event listener for sorting
-    for (let e of document.querySelectorAll('input[name="sorting"]')) {
-        e.addEventListener('change', refresh_table);
-    }
+	for (let e of document.querySelectorAll('input[name="sorting"]')) {
+		e.addEventListener('change', refresh_table);
+	}
 	// Event listener for pagination
 	document.querySelector('#backButton').addEventListener('click', function() {
 		if (this.classList.contains('disabled')) return;
@@ -130,96 +130,96 @@ function initialize_board() {
 			if (!document.querySelector('.search-overlay').classList.contains('hidden')) return;
 			document.LocalScoreViewer_mainChoice = undefined;
 			// e.preventDefault();
-			// document.querySelector('.entry.active').click();
+			document.querySelector('.entry.active')?.click();
 		} else return;
 	});
-    // Event listener for search button and blur overlay
+	// Event listener for search button and blur overlay
 	document.querySelector('.search-button').addEventListener('click', toggle_search);
 	document.querySelector('.overlay-capture').addEventListener('click', toggle_search);
 	handle_autocomplete(document.querySelector('#songSearch'));
 
 	document.LocalScoreViewer_searchPool = [];
 	document.LocalScoreViewer_mainChoice = undefined;
-    load_data_list();
+	load_data_list();
 
-    // New navigation
-    if (window.history.state === null) {
-        // Set up history
-        window.history.replaceState(
-            {isBasePage: true},
-            ''
-        );
-        setTimeout(function() {
-            window.history.pushState(
-                {isBasePage: false},
-                ''
-            );
-        }, 100);
-    } else if (window.history.state.isBasePage) {
-        // If navigated to base page, force to next page
-        window.history.go(1);
-    }
+	// New navigation
+	if (window.history.state === null) {
+		// Set up history
+		window.history.replaceState(
+			{isBasePage: true},
+			''
+		);
+		setTimeout(function() {
+			window.history.pushState(
+				{isBasePage: false},
+				''
+			);
+		}, 100);
+	} else if (window.history.state.isBasePage) {
+		// If navigated to base page, force to next page
+		window.history.go(1);
+	}
 
-    setTimeout(function() {
-        window.addEventListener('popstate', function(e) {
-            if (e.state === null) {
-                // Undo navigation, remove forward entry
-                window.history.go(-1);
-                window.history.replaceState(
-                    {isBasePage: false},
-                    ''
-                );
-            } else if (e.state.isBasePage) {
-                let breadcrumb = [...document.querySelectorAll('.navigation>div[data-path]')];
-                if (breadcrumb.length > 0) {
-                    // One step back from breadcrumb
-                    document.querySelector('#back_button').click();
-                    window.history.go(1);
-                } else {
-                    // If on breadcrumb root, actually go back in history
-                    window.history.replaceState(
-                        {isBasePage: true},
-                        ''
-                    );
-                    window.history.go(-1);
-                }
-            }
-        });
-    }, 200);
+	setTimeout(function() {
+		window.addEventListener('popstate', function(e) {
+			if (e.state === null) {
+				// Undo navigation, remove forward entry
+				window.history.go(-1);
+				window.history.replaceState(
+					{isBasePage: false},
+					''
+				);
+			} else if (e.state.isBasePage) {
+				let breadcrumb = [...document.querySelectorAll('.navigation>div[data-path]')];
+				if (breadcrumb.length > 0) {
+					// One step back from breadcrumb
+					document.querySelector('#back_button').click();
+					window.history.go(1);
+				} else {
+					// If on breadcrumb root, actually go back in history
+					window.history.replaceState(
+						{isBasePage: true},
+						''
+					);
+					window.history.go(-1);
+				}
+			}
+		});
+	}, 200);
 
-    banners();  // random backgrounds
+	banners();  // random backgrounds
 }
 
 function load_data_list() {
-    fetch(db_path)
-        .then(response => response.json())
-        .then(json => document.LocalScoreViewer_songData = json)
+	fetch(db_path)
+		.then(response => response.json())
+		.then(json => document.LocalScoreViewer_songData = json)
 		.then(process_data);
-    fetch('scores/profile_list.json')
-        .then(response => response.json())
-        .then(json => load_data(json));
+	fetch('scores/profile_list.json')
+		.then(response => response.json())
+		.then(json => load_data(json));
 }
 
 function load_data(idlist) {
 	let invalid_entries = 0;
 	let cardData = {}
 
-    for (let sdvx_id of idlist) {
-        fetch(`scores/${sdvx_id}.json`)
-            .then(response => response.json())
-            .then(function(json) {
+	for (let sdvx_id of idlist) {
+		fetch(`scores/${sdvx_id}.json`)
+			.then(response => response.json())
+			.then(function(json) {
 				cardData[sdvx_id] = json;
-            })
-            .catch(function(err) {
-                console.log(`loading ${sdvx_id}.json failed: ${err}`);
-                invalid_entries += 1;
-            })
-            .then(function() {
-                if (Object.keys(cardData).length < (idlist.length - invalid_entries)) return;
+			})
+			.catch(function(err) {
+				console.log(`loading ${sdvx_id}.json failed: ${err}`);
+				invalid_entries += 1;
+			})
+			.then(function() {
+				if (Object.keys(cardData).length < (idlist.length - invalid_entries)) return;
 				document.LocalScoreViewer_cardData = cardData
 				process_data();
-            });
-    }
+			});
+	}
 }
 
 function process_data() {
@@ -552,6 +552,7 @@ function toggle_search(e) {
 	if (document.querySelector('.search-overlay').classList.contains('hidden')) {
 		document.querySelector('#songSearch').blur();
 		document.querySelector('#songSearch').value = '';
+		document.querySelector('#songSearch').dispatchEvent(new Event('input'));
 		document.querySelector('.search-results').innerHTML = '';
 	} else document.querySelector('#songSearch').focus();
 }
@@ -563,6 +564,7 @@ function handle_autocomplete(node) {
 	node.addEventListener('input', function() {
 		container.innerHTML = '';
 		container.classList.add('hidden');
+		candidates = [];
 		let val = this.value;
 		if (val.length === 0 || document.LocalScoreViewer_searchPool.length === 0) return;
 		choice = undefined;
@@ -633,7 +635,7 @@ function handle_autocomplete(node) {
 			e.preventDefault();
 			if (choice !== undefined)
 				container.children[choice]?.dispatchEvent(new Event('click'))
-			else if (candidates?.length === 1)
+			else if (candidates.length === 1)
 				container.firstChild.dispatchEvent(new Event('click'));
 		} else return;
 	});
