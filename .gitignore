@@ -1,0 +1,11 @@
+# Don't commit song database
+song_db.json
+
+# Don't commit backups
+*.bak
+
+# Don't commit profiles (profile_list.json is already committed)
+scores/*.json
+
+# Don't commit .env file
+.env
