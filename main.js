@@ -14,7 +14,7 @@ const filter_fields = {
 };
 const const_names = {
 	diff: ['NOV', 'ADV', 'EXH', 'MXM'],
-	diff4: ['INF', 'GRV', 'HVN', 'VVD'],
+	diff4: ['INF', 'GRV', 'HVN', 'VVD', 'XCD'],
 	status: ['NO MEDAL', 'PLAYED', 'COMP', 'EX COMP', 'UC', 'PERFECT'],
 	grade: ['D', 'C', 'B', 'A', 'A+', 'AA', 'AA+', 'AAA', 'AAA+', 'S']
 };
@@ -29,7 +29,7 @@ const diff4_sort_modifier = {
 	HVN: .3,
 	VVD: .4
 };
-const db_path = '../sdvx-db/db.json';
+const db_path = 'song_db.json';
 
 // Table of functions that convert a table entry into a HTML node
 const table_columns = ['song_name', 'diff', 'level', 'status', 'grade', 'score', 'rival_score'];
@@ -88,7 +88,6 @@ const values_to_node = {
 		}
 		return container;
 	},
-
 	rival_score: function(e) {
 		let container = document.createElement('div');
 		let rs = document.createElement('div');
@@ -382,7 +381,7 @@ function load_score_data() {
 			'rival_score': rival_score,
 			'rival_delta': score_delta,
 			'_id': song_id,
-			'_diff4': const_names.diff4[song_data.inf_ver - 2]
+			'_diff4': song_data.diff4_name
 		};
 
 		if (table_entry.prev_data !== undefined) {
@@ -488,7 +487,7 @@ function compute_statistics() {
 		counter_diff.status[0][idx] = val;
 		counter_diff.status[0][5] += val;
 	}
-	
+
 
 	for (let key in card_data.scores) {
 		if (!card_data.scores.hasOwnProperty(key)) continue;
@@ -519,7 +518,7 @@ function compute_statistics() {
 
 	let level_labels = Array.from(Array(20).keys(), x => `Lv${pad_num(x + 1, 2)}`);
 	level_labels.push('Total');
-	let diff_labels = [...const_names.diff.map(x => `images/diff${x}.png`), const_names.diff4.map(x => `images/diff${x}.png`)];
+	let diff_labels = [...const_names.diff.map(x => `images/diff${x}.png`), `images/diffINF.png`];
 	diff_labels.push('Total');
 	let grade_labels = Array.from(Array(5).keys(), x => `images/grade${x + 5}.png`);
 	let status_labels = Array.from(Array(6).keys(), x => `images/status${x}.png`);
@@ -633,7 +632,7 @@ function compute_volforce() {
 
 			let dif_img = document.createElement('img');
 			if (entry[1] === 4) {
-				dif_img.src = `images/diff${const_names.diff4[song_db[entry[0]].inf_ver - 2]}.png`;
+				dif_img.src = `images/diff${song_db[entry[0]].diff4_name}.png`;
 			} else {
 				dif_img.src = `images/diff${const_names.diff[entry[1]]}.png`;
 			}
