@@ -14,7 +14,7 @@ EAGATE_USERNAME=[your KONAMI ID username]
 EAGATE_PASSWORD=[your KONAMI ID password]
 ```
 - Run `python song_scraper.py`. This produces `song_db.json` in the root folder.
-- Run `python score_scraper.py SV-####-####`, where `SV-####-####` is your SDVX ID. This updates `scores/profile_list.json` and creates `scores/SV-####-####.json`.
+- Run `python score_scraper.py SV-####-####`, where `SV-####-####` is your SDVX ID. This updates `scores/profile_list.json` and creates `scores/SV-####-####.json`. You can also provide someone else's SDVX ID, but their song data must be visible to you.
 - Run `python -m http.server 8080` and visit `localhost:8080` on your browser to view your scores. Specify a different port number if port 8080 is used.
 
 ## Features
